@@ -1,0 +1,972 @@
+<!DOCTYPE html>
+<html lang="vi">
+<head>
+<meta charset="UTF-8">
+<title>蜀山奇俠 – Thục Sơn Kỳ Hiệp</title>
+<style>
+  * { margin:0; padding:0; box-sizing:border-box; }
+  body {
+    background: #0a080f;
+    display: flex; flex-direction: column;
+    align-items: center; justify-content: center;
+    min-height: 100vh;
+    font-family: monospace;
+    user-select: none;
+  }
+  #title-screen, #game-container, #battle-screen {
+    display: none;
+  }
+  /* ── TITLE ── */
+  #title-screen {
+    flex-direction: column; align-items: center; justify-content: center;
+    text-align: center;
+    width: 640px;
+  }
+  .title-zh {
+    font-size: 56px; color: #e8c97a; letter-spacing: 12px;
+    text-shadow: 0 0 30px #e8c97a88, 0 0 60px #c9a04a44;
+    animation: glow 2s ease-in-out infinite alternate;
+  }
+  .title-vn {
+    font-size: 14px; color: #7ab3d4; letter-spacing: 8px; margin-top: 6px;
+  }
+  @keyframes glow {
+    0% { text-shadow: 0 0 20px #e8c97a66; }
+    100% { text-shadow: 0 0 50px #e8c97aaa, 0 0 80px #c9a04a44; }
+  }
+  .title-divider {
+    width: 320px; height: 1px; margin: 18px auto;
+    background: linear-gradient(90deg, transparent, #c9a04a, transparent);
+  }
+  .title-desc {
+    color: #7a6a4a; font-size: 12px; letter-spacing: 3px; margin-bottom: 32px;
+  }
+  #btn-start {
+    background: #1a1208; border: 1px solid #c9a04a;
+    color: #e8c97a; font-family: monospace; font-size: 16px;
+    padding: 12px 48px; cursor: pointer; letter-spacing: 4px;
+    transition: all 0.2s;
+  }
+  #btn-start:hover {
+    background: #3a2a0a; box-shadow: 0 0 20px #c9a04a55;
+  }
+  .controls-hint {
+    margin-top: 24px; color: #4a3a2a; font-size: 11px; letter-spacing: 2px;
+    line-height: 1.8;
+  }
+
+  /* ── GAME ── */
+  #game-container {
+    flex-direction: column; align-items: center;
+    gap: 8px;
+  }
+  #game-header {
+    width: 640px; display: flex; justify-content: space-between;
+    align-items: center; padding: 4px 0;
+  }
+  .hud-name { color: #e8c97a; font-size: 13px; letter-spacing: 2px; }
+  .hud-bars { display: flex; flex-direction: column; gap: 3px; }
+  .hud-bar-row { display: flex; align-items: center; gap: 6px; font-size: 10px; }
+  .hud-bar-label { color: #7a6a4a; width: 20px; }
+  .hud-bar-bg { width: 120px; height: 7px; background: #1a1208; border: 1px solid #3a2a0a; }
+  .hud-bar-fill { height: 100%; transition: width 0.3s; }
+  .hp-fill { background: linear-gradient(90deg, #8b1a1a, #e84040); }
+  .mp-fill { background: linear-gradient(90deg, #1a2a8b, #4080e8); }
+  .hud-level { color: #c9a04a; font-size: 11px; }
+  .hud-steps { color: #5a4a3a; font-size: 10px; letter-spacing: 1px; }
+
+  #canvas {
+    border: 2px solid #3a2a0a;
+    image-rendering: pixelated;
+    display: block;
+  }
+  #log-box {
+    width: 640px; height: 40px; overflow: hidden;
+    background: #08060c; border: 1px solid #2a1a08;
+    padding: 4px 10px; position: relative;
+  }
+  .log-line { color: #7a9a6a; font-size: 11px; line-height: 1.6; letter-spacing: 1px; }
+  .log-line.warn { color: #c9a04a; }
+  .log-line.danger { color: #c84040; }
+
+  /* ── BATTLE ── */
+  #battle-screen {
+    flex-direction: column; align-items: center;
+    width: 640px;
+  }
+  #battle-canvas {
+    border: 2px solid #5a3e1a;
+    image-rendering: pixelated;
+    display: block;
+    background: #08060f;
+  }
+  #battle-ui {
+    width: 640px; background: #0e0a18;
+    border: 1px solid #3a2a0a; border-top: none;
+    padding: 10px 14px;
+  }
+  #battle-bars {
+    display: flex; justify-content: space-between;
+    margin-bottom: 10px;
+  }
+  .bbar-section { display: flex; flex-direction: column; gap: 4px; }
+  .bbar-name { font-size: 12px; letter-spacing: 2px; }
+  .bbar-name.player { color: #e8c97a; }
+  .bbar-name.enemy { color: #c84040; }
+  .bbar-row { display: flex; align-items: center; gap: 6px; font-size: 10px; color: #5a4a3a; }
+  .bbar-bg { width: 180px; height: 8px; background: #1a1208; border: 1px solid #2a1a08; }
+  .bbar-fill { height: 100%; transition: width 0.4s; }
+
+  #battle-log {
+    height: 48px; overflow: hidden; margin-bottom: 10px;
+    border-top: 1px solid #2a1a08; padding-top: 6px;
+  }
+  .blog-line { color: #8a9aaa; font-size: 11px; line-height: 1.7; letter-spacing: 1px; }
+  .blog-line.player-atk { color: #7ab3d4; }
+  .blog-line.enemy-atk  { color: #c84040; }
+  .blog-line.skill-use  { color: #c9a04a; }
+  .blog-line.result     { color: #7ac97a; }
+
+  #skill-bar {
+    display: flex; gap: 8px; flex-wrap: wrap;
+  }
+  .skill-btn {
+    background: #12080a; border: 1px solid #4a3210;
+    color: #c9a04a; font-family: monospace; font-size: 11px;
+    padding: 7px 14px; cursor: pointer; letter-spacing: 1px;
+    transition: all 0.15s; position: relative;
+  }
+  .skill-btn:hover:not(:disabled) {
+    background: #2a1a04; border-color: #e8c97a;
+    box-shadow: 0 0 8px #c9a04a44;
+  }
+  .skill-btn:disabled {
+    opacity: 0.35; cursor: not-allowed;
+  }
+  .skill-btn .mp-cost {
+    position: absolute; top: -6px; right: -4px;
+    background: #1a2a8b; color: #7ab3ff;
+    font-size: 9px; padding: 1px 4px; border-radius: 2px;
+  }
+  #run-btn {
+    background: #1a0808; border-color: #6a2a2a; color: #c06060;
+  }
+  #run-btn:hover { background: #2a1010; border-color: #c84040; }
+</style>
+</head>
+<body>
+
+<!-- TITLE -->
+<div id="title-screen">
+  <canvas id="title-canvas" width="640" height="200" style="image-rendering:pixelated;margin-bottom:16px"></canvas>
+  <div class="title-zh">蜀山奇俠</div>
+  <div class="title-vn">THỤC SƠN KỲ HIỆP</div>
+  <div class="title-divider"></div>
+  <div class="title-desc">— một mình trấn thủ kiếm đạo —</div>
+  <button id="btn-start">▶ KHAI THỦ</button>
+  <div class="controls-hint">
+    WASD / ↑↓←→ : di chuyển &nbsp;|&nbsp; gặp quái tự vào chiến đấu<br>
+    Bản đồ có nhiều tầng, cầu thang ▲ để lên tầng mới
+  </div>
+</div>
+
+<!-- GAME MAP -->
+<div id="game-container">
+  <div id="game-header">
+    <div class="hud-name">⚔ Kiếm Tiên &nbsp;<span class="hud-level" id="hud-lv">Lv.1</span></div>
+    <div class="hud-bars">
+      <div class="hud-bar-row">
+        <span class="hud-bar-label">HP</span>
+        <div class="hud-bar-bg"><div class="hud-bar-fill hp-fill" id="hud-hp" style="width:100%"></div></div>
+        <span id="hud-hp-txt" style="color:#c05050;font-size:10px">100/100</span>
+      </div>
+      <div class="hud-bar-row">
+        <span class="hud-bar-label">MP</span>
+        <div class="hud-bar-bg"><div class="hud-bar-fill mp-fill" id="hud-mp" style="width:100%"></div></div>
+        <span id="hud-mp-txt" style="color:#4080c0;font-size:10px">60/60</span>
+      </div>
+    </div>
+    <div class="hud-steps" id="hud-steps">Tầng 1 · Bước: 0</div>
+  </div>
+  <canvas id="canvas" width="640" height="480"></canvas>
+  <div id="log-box"><div class="log-line">Kiếm Tiên bước vào Thục Sơn... hãy thận trọng.</div></div>
+</div>
+
+<!-- BATTLE -->
+<div id="battle-screen">
+  <canvas id="battle-canvas" width="640" height="260"></canvas>
+  <div id="battle-ui">
+    <div id="battle-bars">
+      <div class="bbar-section">
+        <div class="bbar-name player">⚔ Kiếm Tiên</div>
+        <div class="bbar-row">HP <div class="bbar-bg"><div class="bbar-fill hp-fill" id="b-php" style="width:100%"></div></div> <span id="b-php-txt"></span></div>
+        <div class="bbar-row">MP <div class="bbar-bg"><div class="bbar-fill mp-fill" id="b-pmp" style="width:100%"></div></div> <span id="b-pmp-txt"></span></div>
+      </div>
+      <div class="bbar-section" style="align-items:flex-end">
+        <div class="bbar-name enemy" id="b-ename">妖</div>
+        <div class="bbar-row" style="flex-direction:row-reverse">HP <div class="bbar-bg"><div class="bbar-fill hp-fill" id="b-ehp" style="width:100%"></div></div> <span id="b-ehp-txt"></span></div>
+      </div>
+    </div>
+    <div id="battle-log"></div>
+    <div id="skill-bar">
+      <button class="skill-btn" id="btn-atk">⚔ Thường công</button>
+      <button class="skill-btn" id="btn-s1">⚡ Ngũ Lôi Trảm<span class="mp-cost">20MP</span></button>
+      <button class="skill-btn" id="btn-s2">🌊 Hàn Băng Kiếm<span class="mp-cost">15MP</span></button>
+      <button class="skill-btn" id="btn-s3">💊 Hồi linh đan<span class="mp-cost">0</span></button>
+      <button class="skill-btn" id="run-btn">↩ Tẩu thoát</button>
+    </div>
+  </div>
+</div>
+
+<script>
+// ═══════════════════════════════════════════
+//  PIXEL ART DRAWING HELPERS
+// ═══════════════════════════════════════════
+const TILE = 32;
+const COLS = 20, ROWS = 15;
+
+function pixelScale(ctx, scale=2) {
+  ctx.imageSmoothingEnabled = false;
+}
+
+// Draw a scaled pixel block
+function px(ctx, x, y, w, h, color) {
+  ctx.fillStyle = color;
+  ctx.fillRect(x, y, w, h);
+}
+
+// Draw pixel art sprite from array (each entry: [col,row,color])
+function drawSprite(ctx, ox, oy, pixels, scale=2) {
+  pixels.forEach(([c,r,col]) => {
+    ctx.fillStyle = col;
+    ctx.fillRect(ox + c*scale, oy + r*scale, scale, scale);
+  });
+}
+
+// ─── PLAYER SPRITE (16x16 design, scale 2 → 32px) ───
+const PLAYER_PIXELS = [
+  // hair/head
+  [6,0,'#c9a04a'],[7,0,'#c9a04a'],[8,0,'#c9a04a'],[9,0,'#c9a04a'],
+  [5,1,'#c9a04a'],[6,1,'#f0d080'],[7,1,'#f0d080'],[8,1,'#f0d080'],[9,1,'#f0d080'],[10,1,'#c9a04a'],
+  [5,2,'#f0c898'],[6,2,'#f0c898'],[7,2,'#1a1208'],[8,2,'#f0c898'],[9,2,'#1a1208'],[10,2,'#f0c898'],
+  [5,3,'#f0c898'],[6,3,'#f0c898'],[7,3,'#f0c898'],[8,3,'#f0c898'],[9,3,'#f0c898'],[10,3,'#f0c898'],
+  [6,4,'#f0c898'],[7,4,'#c08060'],[8,4,'#c08060'],[9,4,'#f0c898'],
+  // body – robe
+  [5,5,'#3a6a9a'],[6,5,'#4a8acc'],[7,5,'#4a8acc'],[8,5,'#4a8acc'],[9,5,'#4a8acc'],[10,5,'#3a6a9a'],
+  [4,6,'#3a6a9a'],[5,6,'#4a8acc'],[6,6,'#e8c97a'],[7,6,'#4a8acc'],[8,6,'#4a8acc'],[9,6,'#e8c97a'],[10,6,'#4a8acc'],[11,6,'#3a6a9a'],
+  [4,7,'#2a5a8a'],[5,7,'#3a7abb'],[6,7,'#3a7abb'],[7,7,'#3a7abb'],[8,7,'#3a7abb'],[9,7,'#3a7abb'],[10,7,'#3a7abb'],[11,7,'#2a5a8a'],
+  [4,8,'#2a5a8a'],[5,8,'#3a7abb'],[6,8,'#3a7abb'],[7,8,'#3a7abb'],[8,8,'#3a7abb'],[9,8,'#3a7abb'],[10,8,'#3a7abb'],[11,8,'#2a5a8a'],
+  // legs
+  [5,9,'#2a4a6a'],[6,9,'#2a4a6a'],[7,9,'#2a4a6a'],[8,9,'#2a4a6a'],[9,9,'#2a4a6a'],[10,9,'#2a4a6a'],
+  [5,10,'#1a3a5a'],[6,10,'#1a3a5a'],[8,10,'#1a3a5a'],[9,10,'#1a3a5a'],
+  [5,11,'#1a2a3a'],[6,11,'#1a2a3a'],[8,11,'#1a2a3a'],[9,11,'#1a2a3a'],
+  // sword (right hand)
+  [11,5,'#c0c8d8'],[11,4,'#c0c8d8'],[11,3,'#e0e8f0'],[11,2,'#e0e8f0'],[11,1,'#ffffff'],
+  [12,6,'#8a6a40'],[12,7,'#8a6a40'],
+];
+
+// ─── ENEMY SPRITES ───
+function enemyPixels(type) {
+  const sprites = {
+    spider: [
+      [6,2,'#8a2020'],[7,2,'#8a2020'],[8,2,'#8a2020'],[9,2,'#8a2020'],
+      [5,3,'#aa3030'],[6,3,'#cc2020'],[7,3,'#1a1a1a'],[8,3,'#cc2020'],[9,3,'#1a1a1a'],[10,3,'#aa3030'],
+      [5,4,'#aa3030'],[6,4,'#aa3030'],[7,4,'#cc2020'],[8,4,'#cc2020'],[9,4,'#aa3030'],[10,4,'#aa3030'],
+      [6,5,'#8a2020'],[7,5,'#8a2020'],[8,5,'#8a2020'],[9,5,'#8a2020'],
+      [3,3,'#6a1010'],[4,3,'#6a1010'],[11,3,'#6a1010'],[12,3,'#6a1010'],
+      [2,4,'#6a1010'],[3,4,'#6a1010'],[11,4,'#6a1010'],[12,4,'#6a1010'],[13,4,'#6a1010'],
+      [3,5,'#6a1010'],[4,5,'#6a1010'],[11,5,'#6a1010'],[12,5,'#6a1010'],
+      [5,6,'#6a1010'],[6,6,'#6a1010'],[9,6,'#6a1010'],[10,6,'#6a1010'],
+    ],
+    demon: [
+      [6,0,'#cc0000'],[7,0,'#cc0000'],[8,0,'#cc0000'],[9,0,'#cc0000'],
+      [5,0,'#880000'],[10,0,'#880000'],
+      [5,1,'#aa1010'],[6,1,'#cc1010'],[7,1,'#1a0808'],[8,1,'#cc1010'],[9,1,'#1a0808'],[10,1,'#aa1010'],
+      [4,2,'#aa1010'],[5,2,'#cc1010'],[6,2,'#cc1010'],[7,2,'#cc1010'],[8,2,'#cc1010'],[9,2,'#cc1010'],[10,2,'#cc1010'],[11,2,'#aa1010'],
+      [4,3,'#880000'],[5,3,'#cc1010'],[6,3,'#ffff00'],[7,3,'#cc1010'],[8,3,'#cc1010'],[9,3,'#ffff00'],[10,3,'#cc1010'],[11,3,'#880000'],
+      [4,4,'#880000'],[5,4,'#cc1010'],[6,4,'#cc1010'],[7,4,'#cc1010'],[8,4,'#cc1010'],[9,4,'#cc1010'],[10,4,'#cc1010'],[11,4,'#880000'],
+      [5,5,'#660000'],[6,5,'#880000'],[7,5,'#880000'],[8,5,'#880000'],[9,5,'#880000'],[10,5,'#660000'],
+      [5,6,'#440000'],[6,6,'#660000'],[9,6,'#660000'],[10,6,'#440000'],
+      [3,2,'#440000'],[3,3,'#440000'],[3,4,'#440000'],
+      [12,2,'#440000'],[12,3,'#440000'],[12,4,'#440000'],
+      [2,3,'#440000'],[13,3,'#440000'],
+    ],
+    ghost: [
+      [6,1,'#6a80aa'],[7,1,'#8aa0cc'],[8,1,'#8aa0cc'],[9,1,'#6a80aa'],
+      [5,2,'#8aa0cc'],[6,2,'#aac0ee'],[7,2,'#aac0ee'],[8,2,'#aac0ee'],[9,2,'#aac0ee'],[10,2,'#8aa0cc'],
+      [5,3,'#8aa0cc'],[6,3,'#1a1a2a'],[7,3,'#aac0ee'],[8,3,'#aac0ee'],[9,3,'#1a1a2a'],[10,3,'#8aa0cc'],
+      [5,4,'#8aa0cc'],[6,4,'#aac0ee'],[7,4,'#aac0ee'],[8,4,'#aac0ee'],[9,4,'#aac0ee'],[10,4,'#8aa0cc'],
+      [5,5,'#6a80aa'],[6,5,'#8aa0cc'],[7,5,'#6060aa'],[8,5,'#6060aa'],[9,5,'#8aa0cc'],[10,5,'#6a80aa'],
+      [5,6,'#4a6090'],[7,6,'#4a4a80'],[8,6,'#4a4a80'],[10,6,'#4a6090'],
+      [6,7,'#3a4a70'],[9,7,'#3a4a70'],
+    ],
+    boss: [
+      [5,0,'#c9a04a'],[6,0,'#c9a04a'],[9,0,'#c9a04a'],[10,0,'#c9a04a'],
+      [4,1,'#8a2090'],[5,1,'#b030c0'],[6,1,'#e8c97a'],[7,1,'#e8c97a'],[8,1,'#e8c97a'],[9,1,'#e8c97a'],[10,1,'#b030c0'],[11,1,'#8a2090'],
+      [4,2,'#9030a0'],[5,2,'#c040d0'],[6,2,'#e0d0b0'],[7,2,'#1a0a1a'],[8,2,'#e0d0b0'],[9,2,'#1a0a1a'],[10,2,'#c040d0'],[11,2,'#9030a0'],
+      [3,3,'#9030a0'],[4,3,'#c040d0'],[5,3,'#c040d0'],[6,3,'#c040d0'],[7,3,'#c040d0'],[8,3,'#c040d0'],[9,3,'#c040d0'],[10,3,'#c040d0'],[11,3,'#c040d0'],[12,3,'#9030a0'],
+      [3,4,'#7020800'],[4,4,'#b030c0'],[5,4,'#c040d0'],[6,4,'#ff00ff'],[7,4,'#c040d0'],[8,4,'#c040d0'],[9,4,'#ff00ff'],[10,4,'#c040d0'],[11,4,'#b030c0'],[12,4,'#702080'],
+      [3,5,'#702080'],[4,5,'#b030c0'],[5,5,'#c040d0'],[6,5,'#c040d0'],[7,5,'#c040d0'],[8,5,'#c040d0'],[9,5,'#c040d0'],[10,5,'#c040d0'],[11,5,'#b030c0'],[12,5,'#702080'],
+      [4,6,'#502060'],[5,6,'#902090'],[6,6,'#902090'],[7,6,'#902090'],[8,6,'#902090'],[9,6,'#902090'],[10,6,'#902090'],[11,6,'#502060'],
+      [4,7,'#401050'],[5,7,'#701080'],[6,7,'#701080'],[9,7,'#701080'],[10,7,'#701080'],[11,7,'#401050'],
+      [3,3,'#c9a04a'],[2,4,'#c9a04a'],[13,3,'#c9a04a'],[13,4,'#c9a04a'],
+    ]
+  };
+  return sprites[type] || sprites.spider;
+}
+
+// ═══════════════════════════════════════════
+//  MAP GENERATION
+// ═══════════════════════════════════════════
+const T = { WALL:0, FLOOR:1, GRASS:2, WATER:3, STAIR:4, CHEST:5, TREE:6 };
+
+const TILE_COLORS = {
+  [T.WALL]:  ['#2a1e0e','#1a1208','#2e220e'],
+  [T.FLOOR]: ['#1e1812','#242018','#1a1410'],
+  [T.GRASS]: ['#1a2e10','#243818','#1e3412'],
+  [T.WATER]: ['#0a1a2e','#0e2038','#0a1828'],
+  [T.STAIR]: ['#c9a04a','#8a6a30','#c9a04a'],
+  [T.CHEST]: ['#c9a04a','#8a5a10','#e8d080'],
+  [T.TREE]:  ['#1a3a10','#0e2808','#243e14'],
+};
+
+function generateMap(floor) {
+  const map = [];
+  const enemies = [];
+  const items = [];
+
+  // Fill walls
+  for (let r=0;r<ROWS;r++) {
+    map[r]=[];
+    for (let c=0;c<COLS;c++) map[r][c]=T.WALL;
+  }
+
+  // BSP-style rooms
+  const rooms=[];
+  function carveRoom(x,y,w,h) {
+    for (let r=y;r<y+h;r++)
+      for (let c=x;c<x+w;c++)
+        if(r>0&&r<ROWS-1&&c>0&&c<COLS-1) map[r][c]=T.FLOOR;
+    rooms.push({x,y,w,h,cx:Math.floor(x+w/2),cy:Math.floor(y+h/2)});
+  }
+  function carveCorridor(x1,y1,x2,y2) {
+    let cx=x1,cy=y1;
+    while(cx!==x2) { if(cy>0&&cy<ROWS-1&&cx>0&&cx<COLS-1) map[cy][cx]=T.FLOOR; cx+=cx<x2?1:-1; }
+    while(cy!==y2) { if(cy>0&&cy<ROWS-1&&cx>0&&cx<COLS-1) map[cy][cx]=T.FLOOR; cy+=cy<y2?1:-1; }
+  }
+
+  // Generate 5-8 rooms
+  const numRooms = 5 + Math.floor(Math.random()*4);
+  let attempts=0;
+  while(rooms.length<numRooms && attempts<200) {
+    attempts++;
+    const w=4+Math.floor(Math.random()*5);
+    const h=3+Math.floor(Math.random()*4);
+    const x=1+Math.floor(Math.random()*(COLS-w-2));
+    const y=1+Math.floor(Math.random()*(ROWS-h-2));
+    let overlaps=false;
+    for(const rm of rooms) {
+      if(x<rm.x+rm.w+1&&x+w>rm.x-1&&y<rm.y+rm.h+1&&y+h>rm.y-1){overlaps=true;break;}
+    }
+    if(!overlaps) carveRoom(x,y,w,h);
+  }
+  for(let i=1;i<rooms.length;i++) carveCorridor(rooms[i-1].cx,rooms[i-1].cy,rooms[i].cx,rooms[i].cy);
+
+  // Add some grass/water/trees in rooms
+  for(let i=1;i<rooms.length-1;i++) {
+    const rm=rooms[i];
+    if(Math.random()<0.4) {
+      const tx=rm.x+1+Math.floor(Math.random()*(rm.w-2));
+      const ty=rm.y+1+Math.floor(Math.random()*(rm.h-2));
+      map[ty][tx]=Math.random()<0.5?T.GRASS:T.TREE;
+    }
+  }
+
+  // Stair in last room
+  const lastRm=rooms[rooms.length-1];
+  map[lastRm.cy][lastRm.cx]=T.STAIR;
+
+  // Chest in a random mid room
+  const chestRm=rooms[1+Math.floor(Math.random()*(rooms.length-2))];
+  map[chestRm.cy][chestRm.cx+1]=T.CHEST;
+
+  // Spawn enemies in rooms (not first room, not where stair is)
+  const types=['spider','demon','ghost'];
+  for(let i=1;i<rooms.length;i++) {
+    const rm=rooms[i];
+    const count = floor<3?1:2;
+    for(let e=0;e<count;e++) {
+      const ex=rm.x+1+Math.floor(Math.random()*(rm.w-2));
+      const ey=rm.y+1+Math.floor(Math.random()*(rm.h-2));
+      if(map[ey][ex]===T.FLOOR) {
+        const etype = floor>=5?'boss':(types[Math.floor(Math.random()*types.length)]);
+        const hp=20+floor*8+Math.floor(Math.random()*10);
+        enemies.push({x:ex,y:ey,type:etype,hp,maxHp:hp,
+          atk:5+floor*2, name:etype==='boss'?'Ma Vương':etype==='demon'?'Yêu Ma':etype==='ghost'?'Cô Hồn':'Nhện Độc'});
+      }
+    }
+  }
+
+  return {map, enemies, items, rooms, startX:rooms[0].cx, startY:rooms[0].cy};
+}
+
+// ═══════════════════════════════════════════
+//  GAME STATE
+// ═══════════════════════════════════════════
+const player = {
+  x:2, y:2,
+  hp:100, maxHp:100,
+  mp:60, maxMp:60,
+  atk:12, def:4,
+  level:1, exp:0, expNext:20,
+  steps:0, floor:1,
+  potions:3,
+};
+
+let currentMap = null;
+let currentScreen = 'title';
+let battleState = null;
+let animFrame = null;
+let moveBuffer = null;
+let moveTimer = 0;
+let walkFrame = 0, walkTick = 0;
+let battleAnim = null;
+let logLines = [];
+
+const canvas = document.getElementById('canvas');
+const ctx = canvas.getContext('2d');
+const bCanvas = document.getElementById('battle-canvas');
+const bCtx = bCanvas.getContext('2d');
+
+// ═══════════════════════════════════════════
+//  TITLE SCREEN ANIMATION
+// ═══════════════════════════════════════════
+function drawTitleArt() {
+  const tc = document.getElementById('title-canvas');
+  const tx = tc.getContext('2d');
+  tx.fillStyle='#0a080f'; tx.fillRect(0,0,640,200);
+
+  // Mountains pixel art
+  const mtns=[
+    {pts:[[0,180],[100,80],[200,140],[320,40],[440,100],[560,60],[640,160],[640,200],[0,200]],c:'#1a1040'},
+    {pts:[[0,200],[0,160],[80,100],[160,150],[240,70],[320,130],[400,60],[480,110],[560,80],[640,120],[640,200]],c:'#0e0828'},
+    {pts:[[0,200],[0,170],[60,140],[130,165],[200,130],[280,150],[360,120],[440,145],[520,125],[600,140],[640,130],[640,200]],c:'#08061a'},
+  ];
+  mtns.forEach(m=>{
+    tx.beginPath();
+    tx.moveTo(m.pts[0][0],m.pts[0][1]);
+    m.pts.slice(1).forEach(p=>tx.lineTo(p[0],p[1]));
+    tx.closePath(); tx.fillStyle=m.c; tx.fill();
+  });
+
+  // Stars
+  for(let i=0;i<60;i++){
+    const sx=Math.random()*640,sy=Math.random()*120;
+    const sr=Math.random()>0.8?1.5:0.8;
+    tx.fillStyle=`rgba(255,255,240,${0.3+Math.random()*0.7})`;
+    tx.beginPath(); tx.arc(sx,sy,sr,0,Math.PI*2); tx.fill();
+  }
+
+  // Moon
+  tx.fillStyle='#fff8e0';
+  tx.beginPath(); tx.arc(500,40,22,0,Math.PI*2); tx.fill();
+  tx.fillStyle='#0a080f';
+  tx.beginPath(); tx.arc(510,36,18,0,Math.PI*2); tx.fill();
+
+  // Flying sword silhouette
+  tx.save(); tx.translate(200,90); tx.rotate(-0.3);
+  tx.fillStyle='#c9a04a88';
+  tx.fillRect(-30,-2,60,4);
+  tx.fillRect(24,-5,8,10);
+  tx.restore();
+}
+
+// ═══════════════════════════════════════════
+//  MAP RENDERING
+// ═══════════════════════════════════════════
+function drawMap() {
+  ctx.fillStyle='#06040a'; ctx.fillRect(0,0,640,480);
+
+  const offsetX = Math.max(0, Math.min(player.x-10, COLS-20))*TILE;
+  const offsetY = Math.max(0, Math.min(player.y-7, ROWS-15))*TILE;
+  const camX = Math.max(0, Math.min(player.x-10, COLS-20));
+  const camY = Math.max(0, Math.min(player.y-7, ROWS-15));
+
+  for(let r=0;r<ROWS;r++) {
+    for(let c=0;c<COLS;c++) {
+      const tile = currentMap.map[r][c];
+      const sx=(c-camX)*TILE, sy=(r-camY)*TILE;
+      if(sx<-TILE||sx>640||sy<-TILE||sy>480) continue;
+
+      drawTile(ctx, tile, sx, sy);
+    }
+  }
+
+  // Draw enemies
+  currentMap.enemies.forEach(e=>{
+    const sx=(e.x-camX)*TILE, sy=(e.y-camY)*TILE;
+    if(sx<-TILE||sx>640||sy<-TILE||sy>480) return;
+    drawSprite(ctx, sx+2, sy+2, enemyPixels(e.type), 2);
+  });
+
+  // Draw player
+  const px2=(player.x-camX)*TILE, py2=(player.y-camY)*TILE;
+  const wOff = walkFrame===1?1:0;
+  drawSprite(ctx, px2+2, py2+2-wOff, PLAYER_PIXELS, 2);
+
+  // Fog of war vignette
+  const grad=ctx.createRadialGradient(320,240,120,320,240,340);
+  grad.addColorStop(0,'rgba(0,0,0,0)');
+  grad.addColorStop(1,'rgba(0,0,0,0.6)');
+  ctx.fillStyle=grad; ctx.fillRect(0,0,640,480);
+}
+
+function drawTile(ctx, tile, sx, sy) {
+  const colors = TILE_COLORS[tile]||TILE_COLORS[T.WALL];
+
+  if(tile===T.WALL) {
+    ctx.fillStyle=colors[0]; ctx.fillRect(sx,sy,TILE,TILE);
+    ctx.fillStyle=colors[2]; ctx.fillRect(sx,sy,TILE,3);
+    ctx.fillStyle=colors[1]; ctx.fillRect(sx,sy,3,TILE);
+    // stone texture
+    ctx.fillStyle='rgba(0,0,0,0.3)';
+    ctx.fillRect(sx+4,sy+4,12,10); ctx.fillRect(sx+18,sy+16,10,10);
+    return;
+  }
+
+  ctx.fillStyle=colors[1]; ctx.fillRect(sx,sy,TILE,TILE);
+
+  if(tile===T.FLOOR) {
+    ctx.fillStyle='rgba(255,200,100,0.04)';
+    ctx.fillRect(sx+2,sy+2,8,8); ctx.fillRect(sx+18,sy+20,6,6);
+  }
+  if(tile===T.GRASS) {
+    ctx.fillStyle=colors[0]; ctx.fillRect(sx,sy,TILE,TILE);
+    ['#2a4818','#386020','#1e3a10'].forEach((c,i)=>{
+      ctx.fillStyle=c;
+      ctx.fillRect(sx+4+i*8,sy+TILE-6,3,6);
+      ctx.fillRect(sx+6+i*8,sy+TILE-8,2,3);
+    });
+  }
+  if(tile===T.WATER) {
+    ctx.fillStyle=colors[0]; ctx.fillRect(sx,sy,TILE,TILE);
+    ctx.fillStyle='rgba(100,180,255,0.15)';
+    ctx.fillRect(sx+2,sy+10,TILE-4,4); ctx.fillRect(sx+4,sy+20,TILE-8,3);
+  }
+  if(tile===T.TREE) {
+    ctx.fillStyle='#1a1208'; ctx.fillRect(sx,sy,TILE,TILE);
+    ctx.fillStyle='#1a3010'; ctx.fillRect(sx+8,sy+2,16,18);
+    ctx.fillStyle='#284018'; ctx.fillRect(sx+6,sy+8,20,14);
+    ctx.fillStyle='#3a1808'; ctx.fillRect(sx+12,sy+20,8,10);
+  }
+  if(tile===T.STAIR) {
+    ctx.fillStyle='#1a1208'; ctx.fillRect(sx,sy,TILE,TILE);
+    for(let i=0;i<4;i++){
+      ctx.fillStyle=i%2===0?'#c9a04a':'#8a6a30';
+      ctx.fillRect(sx+i*4+4,sy+i*4+4,TILE-i*8-4,4);
+    }
+    // Up arrow
+    ctx.fillStyle='#e8d080'; ctx.font='bold 14px monospace'; ctx.textAlign='center';
+    ctx.fillText('▲',sx+16,sy+28);
+  }
+  if(tile===T.CHEST) {
+    ctx.fillStyle='#4a3010'; ctx.fillRect(sx+4,sy+8,24,18);
+    ctx.fillStyle='#8a6a30'; ctx.fillRect(sx+4,sy+8,24,6);
+    ctx.fillStyle='#e8c97a'; ctx.fillRect(sx+13,sy+13,6,4);
+  }
+}
+
+// ═══════════════════════════════════════════
+//  BATTLE RENDERING
+// ═══════════════════════════════════════════
+function drawBattle() {
+  if(!battleState) return;
+  bCtx.fillStyle='#05030a'; bCtx.fillRect(0,0,640,260);
+
+  // Background – temple hall
+  bCtx.fillStyle='#0e0a18'; bCtx.fillRect(0,60,640,200);
+  // Pillars
+  [80,560].forEach(px3=>{
+    bCtx.fillStyle='#1a1430'; bCtx.fillRect(px3-12,60,24,200);
+    bCtx.fillStyle='#241e3a'; bCtx.fillRect(px3-10,60,4,200);
+  });
+  // Floor tiles
+  for(let i=0;i<20;i++){
+    bCtx.fillStyle=i%2===0?'#12101e':'#0e0c1a';
+    bCtx.fillRect(i*32,200,32,60);
+  }
+  // Ground line
+  bCtx.fillStyle='#3a2a5a'; bCtx.fillRect(0,200,640,2);
+
+  // Sky / magic aura
+  const aura=bCtx.createLinearGradient(0,0,0,60);
+  aura.addColorStop(0,'#05020a');
+  aura.addColorStop(1,'rgba(40,10,60,0.4)');
+  bCtx.fillStyle=aura; bCtx.fillRect(0,0,640,60);
+
+  // Enemy
+  const e=battleState.enemy;
+  const escale=e.type==='boss'?3:2.5;
+  const epx=e.type==='boss'?380:400;
+  drawSprite(bCtx, epx, 100, enemyPixels(e.type), escale);
+
+  // Player (battle pose)
+  drawSprite(bCtx, 120, 120, PLAYER_PIXELS, 2.5);
+
+  // Skill animation
+  if(battleAnim) {
+    const t=(Date.now()-battleAnim.start)/battleAnim.dur;
+    if(t<1) {
+      bCtx.save();
+      bCtx.globalAlpha=Math.sin(t*Math.PI);
+      if(battleAnim.type==='slash') {
+        bCtx.strokeStyle='#c9a04a'; bCtx.lineWidth=3;
+        bCtx.beginPath();
+        bCtx.moveTo(280+t*100,140-40); bCtx.lineTo(320+t*80,180-40);
+        bCtx.stroke();
+        bCtx.strokeStyle='#ffffff'; bCtx.lineWidth=1;
+        bCtx.beginPath();
+        bCtx.moveTo(285+t*100,140-40); bCtx.lineTo(325+t*80,180-40);
+        bCtx.stroke();
+      } else if(battleAnim.type==='thunder') {
+        bCtx.strokeStyle='#ffff00'; bCtx.lineWidth=2;
+        for(let i=0;i<5;i++){
+          bCtx.beginPath();
+          bCtx.moveTo(300,60); bCtx.lineTo(340+i*10,100); bCtx.lineTo(320+i*10,140);
+          bCtx.stroke();
+        }
+      } else if(battleAnim.type==='ice') {
+        bCtx.strokeStyle='#80cfff'; bCtx.lineWidth=2;
+        for(let a=0;a<6;a++){
+          const ang=a/6*Math.PI*2;
+          bCtx.beginPath();
+          bCtx.moveTo(420+Math.cos(ang)*10,140+Math.sin(ang)*10);
+          bCtx.lineTo(420+Math.cos(ang)*40,140+Math.sin(ang)*40);
+          bCtx.stroke();
+        }
+      } else if(battleAnim.type==='enemy') {
+        bCtx.strokeStyle='#ff4040'; bCtx.lineWidth=3;
+        bCtx.beginPath();
+        bCtx.moveTo(380,160); bCtx.lineTo(200+t*50,160);
+        bCtx.stroke();
+        // flash player
+        bCtx.fillStyle='rgba(255,0,0,0.3)'; bCtx.fillRect(100,100,100,120);
+      }
+      bCtx.restore();
+    } else {
+      battleAnim=null;
+    }
+  }
+
+  // HP bars update
+  const p2=battleState.player;
+  document.getElementById('b-php').style.width=(p2.hp/p2.maxHp*100)+'%';
+  document.getElementById('b-pmp').style.width=(p2.mp/p2.maxMp*100)+'%';
+  document.getElementById('b-php-txt').textContent=p2.hp+'/'+p2.maxHp;
+  document.getElementById('b-pmp-txt').textContent=p2.mp+'/'+p2.maxMp;
+  document.getElementById('b-ehp').style.width=Math.max(0,e.hp/e.maxHp*100)+'%';
+  document.getElementById('b-ehp-txt').textContent=Math.max(0,e.hp)+'/'+e.maxHp;
+  document.getElementById('b-ename').textContent='👹 '+e.name;
+}
+
+// ═══════════════════════════════════════════
+//  GAME LOOP
+// ═══════════════════════════════════════════
+function gameLoop() {
+  if(currentScreen==='game') {
+    walkTick++;
+    if(walkTick>8){walkFrame=(walkFrame+1)%2;walkTick=0;}
+    drawMap();
+    updateHUD();
+  } else if(currentScreen==='battle') {
+    drawBattle();
+  }
+  animFrame=requestAnimationFrame(gameLoop);
+}
+
+function updateHUD() {
+  document.getElementById('hud-lv').textContent='Lv.'+player.level;
+  document.getElementById('hud-hp').style.width=(player.hp/player.maxHp*100)+'%';
+  document.getElementById('hud-mp').style.width=(player.mp/player.maxMp*100)+'%';
+  document.getElementById('hud-hp-txt').textContent=player.hp+'/'+player.maxHp;
+  document.getElementById('hud-mp-txt').textContent=player.mp+'/'+player.maxMp;
+  document.getElementById('hud-steps').textContent='Tầng '+player.floor+' · Bước: '+player.steps;
+}
+
+// ═══════════════════════════════════════════
+//  LOG
+// ═══════════════════════════════════════════
+function addLog(msg, cls='') {
+  logLines.unshift({msg,cls});
+  if(logLines.length>3) logLines.pop();
+  const box=document.getElementById('log-box');
+  box.innerHTML=logLines.slice(0,2).map(l=>`<div class="log-line ${l.cls}">${l.msg}</div>`).join('');
+}
+
+function addBattleLog(msg,cls='') {
+  const box=document.getElementById('battle-log');
+  const div=document.createElement('div');
+  div.className='blog-line '+cls;
+  div.textContent=msg;
+  box.insertBefore(div,box.firstChild);
+  while(box.children.length>3) box.removeChild(box.lastChild);
+}
+
+// ═══════════════════════════════════════════
+//  MOVEMENT
+// ═══════════════════════════════════════════
+const keys={};
+document.addEventListener('keydown',e=>{
+  keys[e.key]=true;
+  if(['ArrowUp','ArrowDown','ArrowLeft','ArrowRight'].includes(e.key)) e.preventDefault();
+});
+document.addEventListener('keyup',e=>{ keys[e.key]=false; });
+
+setInterval(()=>{
+  if(currentScreen!=='game') return;
+  let dx=0,dy=0;
+  if(keys['ArrowUp']||keys['w']||keys['W']) dy=-1;
+  else if(keys['ArrowDown']||keys['s']||keys['S']) dy=1;
+  else if(keys['ArrowLeft']||keys['a']||keys['A']) dx=-1;
+  else if(keys['ArrowRight']||keys['d']||keys['D']) dx=1;
+  if(dx||dy) tryMove(dx,dy);
+},120);
+
+function tryMove(dx,dy) {
+  const nx=player.x+dx, ny=player.y+dy;
+  if(nx<0||nx>=COLS||ny<0||ny>=ROWS) return;
+  const tile=currentMap.map[ny][nx];
+  if(tile===T.WALL||tile===T.TREE) return;
+
+  // Check enemy collision
+  const eIdx=currentMap.enemies.findIndex(e=>e.x===nx&&e.y===ny);
+  if(eIdx>=0) {
+    startBattle(currentMap.enemies[eIdx], eIdx);
+    return;
+  }
+
+  player.x=nx; player.y=ny; player.steps++;
+
+  if(tile===T.STAIR) {
+    player.floor++;
+    addLog(`✦ Lên tầng ${player.floor}! Nguy hiểm hơn, linh khí cũng dày hơn.`,'warn');
+    const md=generateMap(player.floor);
+    currentMap=md;
+    player.x=md.startX; player.y=md.startY;
+    // Restore some HP/MP
+    player.hp=Math.min(player.maxHp,player.hp+20);
+    player.mp=Math.min(player.maxMp,player.mp+15);
+  }
+
+  if(tile===T.CHEST) {
+    currentMap.map[ny][nx]=T.FLOOR;
+    const gold=10+Math.floor(Math.random()*20)*player.floor;
+    const potion=Math.random()<0.5;
+    if(potion) { player.potions++; addLog(`🎁 Rương kho: nhận Hồi Linh Đan x1! Tổng: ${player.potions}`,'warn'); }
+    else addLog(`🎁 Rương kho: nhận ${gold} linh thạch!`,'warn');
+  }
+
+  // Random MP regen
+  if(player.steps%5===0 && player.mp<player.maxMp) {
+    player.mp=Math.min(player.maxMp,player.mp+3);
+  }
+}
+
+// ═══════════════════════════════════════════
+//  BATTLE
+// ═══════════════════════════════════════════
+function startBattle(enemy, eIdx) {
+  currentScreen='battle';
+  document.getElementById('game-container').style.display='none';
+  document.getElementById('battle-screen').style.display='flex';
+
+  battleState={
+    player:{...player},
+    enemy:{...enemy},
+    eIdx,
+    playerTurn:true,
+    busy:false,
+  };
+
+  addBattleLog(`⚔ Gặp ${enemy.name}! Chiến đấu bắt đầu!`,'skill-use');
+  updateBattleButtons();
+}
+
+function updateBattleButtons() {
+  if(!battleState) return;
+  const p=battleState.player;
+  document.getElementById('btn-s1').disabled=p.mp<20||!battleState.playerTurn||battleState.busy;
+  document.getElementById('btn-s2').disabled=p.mp<15||!battleState.playerTurn||battleState.busy;
+  document.getElementById('btn-s3').disabled=p.potions<=0||!battleState.playerTurn||battleState.busy;
+  document.getElementById('btn-atk').disabled=!battleState.playerTurn||battleState.busy;
+  document.getElementById('run-btn').disabled=!battleState.playerTurn||battleState.busy;
+  document.getElementById('btn-s3').textContent=`💊 Hồi linh đan (${p.potions})`;
+}
+
+function playerAction(type) {
+  if(!battleState||!battleState.playerTurn||battleState.busy) return;
+  battleState.busy=true;
+
+  const p=battleState.player;
+  const e=battleState.enemy;
+  let dmg=0, animType='slash', logMsg='', logCls='player-atk';
+
+  if(type==='atk') {
+    dmg=Math.max(1,p.atk-Math.floor(e.atk*0.2)+Math.floor(Math.random()*8));
+    const crit=Math.random()<0.15;
+    if(crit){dmg=Math.floor(dmg*1.8);logMsg=`⚔ Thường công CHÍ MẠNG! Gây ${dmg} sát thương!`;}
+    else logMsg=`⚔ Thường công → ${e.name} chịu ${dmg} sát thương.`;
+    animType='slash';
+  } else if(type==='s1') {
+    p.mp-=20; dmg=Math.floor(p.atk*2.2)+Math.floor(Math.random()*15);
+    logMsg=`⚡ Ngũ Lôi Trảm! Sét đánh gây ${dmg} sát thương!`;
+    animType='thunder'; logCls='skill-use';
+  } else if(type==='s2') {
+    p.mp-=15; dmg=Math.floor(p.atk*1.6)+Math.floor(Math.random()*10);
+    logMsg=`🌊 Hàn Băng Kiếm! Băng lạnh gây ${dmg} sát thương!`;
+    animType='ice'; logCls='skill-use';
+  } else if(type==='heal') {
+    p.potions--;
+    const heal=25+Math.floor(Math.random()*15);
+    p.hp=Math.min(p.maxHp,p.hp+heal);
+    addBattleLog(`💊 Uống Hồi Linh Đan! Hồi phục ${heal} HP.`,'result');
+    battleState.busy=false;
+    battleState.playerTurn=false;
+    updateBattleButtons();
+    setTimeout(enemyTurn,800);
+    return;
+  } else if(type==='run') {
+    if(Math.random()<0.4) {
+      addBattleLog(`↩ Tẩu thoát thất bại! ${e.name} chặn đường!`,'enemy-atk');
+      battleState.busy=false; battleState.playerTurn=false;
+      setTimeout(enemyTurn,800); return;
+    }
+    addBattleLog('↩ Tẩu thoát thành công!','result');
+    endBattle(false); return;
+  }
+
+  e.hp-=dmg;
+  battleAnim={type:animType,start:Date.now(),dur:600};
+  addBattleLog(logMsg,logCls);
+
+  setTimeout(()=>{
+    if(e.hp<=0) {
+      endBattle(true); return;
+    }
+    battleState.playerTurn=false;
+    battleState.busy=false;
+    updateBattleButtons();
+    setTimeout(enemyTurn,600);
+  },700);
+}
+
+function enemyTurn() {
+  if(!battleState) return;
+  const p=battleState.player;
+  const e=battleState.enemy;
+  battleState.busy=true;
+
+  let dmg=Math.max(1,e.atk-p.def+Math.floor(Math.random()*6));
+  const special=Math.random()<0.2;
+  let msg=``;
+
+  if(special) {
+    dmg=Math.floor(dmg*1.5);
+    msg=`💥 ${e.name} tung chiêu đặc biệt! Gây ${dmg} sát thương!`;
+  } else {
+    msg=`${e.name} tấn công! Gây ${dmg} sát thương.`;
+  }
+
+  p.hp=Math.max(0,p.hp-dmg);
+  battleAnim={type:'enemy',start:Date.now(),dur:500};
+  addBattleLog(msg,'enemy-atk');
+
+  setTimeout(()=>{
+    battleState.busy=false;
+    if(p.hp<=0) {
+      addBattleLog('☠ Kiếm Tiên bại trận...','enemy-atk');
+      setTimeout(()=>{ endBattle(false,'dead'); },1000); return;
+    }
+    battleState.playerTurn=true;
+    updateBattleButtons();
+  },600);
+}
+
+function endBattle(won, reason) {
+  if(!battleState) return;
+  const p=battleState.player;
+  const e=battleState.enemy;
+
+  // Sync player state
+  player.hp=p.hp;
+  player.mp=p.mp;
+  player.potions=p.potions;
+
+  if(won) {
+    const exp=8+e.atk+player.floor*3;
+    const heal=Math.floor(e.maxHp*0.15);
+    player.exp+=exp;
+    player.hp=Math.min(player.maxHp,player.hp+heal);
+    currentMap.enemies.splice(battleState.eIdx,1);
+    addLog(`✦ Tiêu diệt ${e.name}! +${exp} EXP. Hồi ${heal} HP.`,'warn');
+
+    if(player.exp>=player.expNext) {
+      player.level++;
+      player.exp-=player.expNext;
+      player.expNext=Math.floor(player.expNext*1.6);
+      player.maxHp+=15; player.hp+=15;
+      player.maxMp+=8; player.mp+=8;
+      player.atk+=3; player.def+=1;
+      addLog(`🌟 Đột phá cảnh giới! Lên Lv.${player.level}!`,'warn');
+    }
+  } else if(reason==='dead') {
+    // Respawn
+    player.hp=Math.floor(player.maxHp*0.5);
+    player.mp=Math.floor(player.maxMp*0.5);
+    addLog('☠ Bại trận... hồi về đầu tầng.','danger');
+    const md=generateMap(player.floor);
+    currentMap=md;
+    player.x=md.startX; player.y=md.startY;
+  }
+
+  battleState=null;
+  battleAnim=null;
+  currentScreen='game';
+  document.getElementById('battle-screen').style.display='none';
+  document.getElementById('game-container').style.display='flex';
+}
+
+// ═══════════════════════════════════════════
+//  INIT
+// ═══════════════════════════════════════════
+document.getElementById('btn-start').addEventListener('click',()=>{
+  document.getElementById('title-screen').style.display='none';
+  document.getElementById('game-container').style.display='flex';
+  currentScreen='game';
+  const md=generateMap(1);
+  currentMap=md;
+  player.x=md.startX; player.y=md.startY;
+  addLog('Kiếm Tiên bước vào Thục Sơn... hãy thận trọng.');
+  gameLoop();
+});
+
+document.getElementById('btn-atk').addEventListener('click',()=>playerAction('atk'));
+document.getElementById('btn-s1').addEventListener('click',()=>playerAction('s1'));
+document.getElementById('btn-s2').addEventListener('click',()=>playerAction('s2'));
+document.getElementById('btn-s3').addEventListener('click',()=>playerAction('heal'));
+document.getElementById('run-btn').addEventListener('click',()=>playerAction('run'));
+
+// Server btn flavor
+document.querySelectorAll&&document.querySelectorAll('.server-btn').forEach(b=>{
+  b.addEventListener('click',function(){
+    document.querySelectorAll('.server-btn').forEach(x=>x.classList.remove('active'));
+    this.classList.add('active');
+  });
+});
+
+// Draw title art & show title
+drawTitleArt();
+document.getElementById('title-screen').style.display='flex';
+</script>
+</body>
+</html>
