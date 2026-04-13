@@ -310,6 +310,9 @@ const FateSystem = {
     });
   },
 
+  // applyFates: chỉ gọi sau khi applyToStats đã tính xong stat gốc.
+  // KHÔNG gọi clearFateFlags ở đây vì applyToStats đã được chạy trước và
+  // các fate như longevity/ironBody mutate trực tiếp lên stat đã tính.
   applyFates() {
     this.clearFateFlags();
     this.state.fates.forEach(fate => {
@@ -317,14 +320,14 @@ const FateSystem = {
       if (def && typeof def.apply === 'function') def.apply(Player);
     });
 
-    // Apply darkFate stat penalty after all stats set
+    // Apply darkFate stat penalty sau cùng
     if (Player._fateStatPenalty) {
-      Player.atk  = Math.floor(Player.atk  * Player._fateStatPenalty);
-      Player.def  = Math.floor(Player.def  * Player._fateStatPenalty);
+      Player.atk   = Math.floor(Player.atk   * Player._fateStatPenalty);
+      Player.def   = Math.floor(Player.def   * Player._fateStatPenalty);
       Player.maxHp = Math.floor(Player.maxHp * Player._fateStatPenalty);
       Player.maxMp = Math.floor(Player.maxMp * Player._fateStatPenalty);
-      Player.hp = Math.min(Player.hp, Player.maxHp);
-      Player.mp = Math.min(Player.mp, Player.maxMp);
+      Player.hp    = Math.min(Player.hp, Player.maxHp);
+      Player.mp    = Math.min(Player.mp, Player.maxMp);
     }
   },
 
@@ -616,15 +619,70 @@ const CharacterBuildUI = {
     modal.querySelectorAll('.method-pick-opt').forEach(btn => {
       btn.onclick = () => {
         const methodId = btn.dataset.method;
-        if (CultivationMethodSystem.choose(methodId)) {
-          modal.remove();
-          this.injectBuildSection();
-        }
+        const m = CULTIVATION_METHOD_CONFIG.methods[methodId];
+        // Bước 2: Hiện confirm dialog trước khi thực sự đổi
+        this._showMethodConfirm(modal, methodId, m);
       };
     });
 
     document.getElementById('methodPickerClose').onclick = () => modal.remove();
     modal.onclick = (e) => { if (e.target === modal) modal.remove(); };
+  },
+
+  _showMethodConfirm(pickerModal, methodId, methodCfg) {
+    const existing = document.getElementById('methodConfirmModal');
+    if (existing) existing.remove();
+
+    const confirm = document.createElement('div');
+    confirm.id = 'methodConfirmModal';
+    confirm.style.cssText = `
+      position:fixed;inset:0;background:rgba(0,0,0,0.88);z-index:310;
+      display:flex;align-items:center;justify-content:center;
+      font-family:'Courier New',monospace;
+    `;
+    confirm.innerHTML = `
+      <div style="background:#1a0d0d;border:2px solid #ef5350;border-radius:12px;
+                  padding:24px;max-width:300px;width:88%;text-align:center;color:#eee">
+        <div style="font-size:26px;margin-bottom:8px">⚠️</div>
+        <div style="color:#ef5350;font-size:14px;font-weight:bold;margin-bottom:10px">
+          XÁC NHẬN ĐỔI TÂM PHÁP
+        </div>
+        <div style="color:#ccc;font-size:12px;line-height:1.7;margin-bottom:16px">
+          Đổi sang <span style="color:${methodCfg.color};font-weight:bold">${methodCfg.icon} ${methodCfg.name}</span>
+          sẽ:<br>
+          <span style="color:#ef5350">• Reset Level về 1</span><br>
+          <span style="color:#ef5350">• Reset EXP về 0</span><br>
+          <span style="color:#ff9800">• Tiêu tốn 1 Tâm Pháp Hoán Đổi Đan</span><br>
+          <span style="color:#aaa;font-size:10px">(Tu Vi, Vàng, Kỹ Năng vẫn giữ nguyên)</span>
+        </div>
+        <div style="display:flex;gap:8px">
+          <button id="methodConfirmYes"
+            style="flex:1;padding:10px;border:1px solid #ef5350;background:rgba(239,83,80,0.25);
+                   border-radius:6px;cursor:pointer;color:#ef5350;font-family:'Courier New',monospace;
+                   font-size:12px;font-weight:bold">
+            ✅ Xác Nhận
+          </button>
+          <button id="methodConfirmNo"
+            style="flex:1;padding:10px;border:1px solid #555;background:rgba(0,0,0,0.4);
+                   border-radius:6px;cursor:pointer;color:#888;font-family:'Courier New',monospace;
+                   font-size:12px">
+            ✖ Hủy
+          </button>
+        </div>
+      </div>`;
+
+    document.body.appendChild(confirm);
+
+    document.getElementById('methodConfirmYes').onclick = () => {
+      confirm.remove();
+      if (CultivationMethodSystem.choose(methodId)) {
+        pickerModal.remove();
+        this.injectBuildSection();
+      }
+    };
+
+    document.getElementById('methodConfirmNo').onclick = () => confirm.remove();
+    confirm.onclick = (e) => { if (e.target === confirm) confirm.remove(); };
   }
 };
 
@@ -746,11 +804,15 @@ function _injectBuildStyles() {
 function _installHooks() {
 
   // ── 1. recalculateStats ──────────────────────────────────
+  // Thứ tự: _orig (equip/pet) → applyToStats (method override) → applyFates (fate mutate on top)
+  // applyFates chỉ chạy nếu đã rolled, tránh clear flags khi chưa có fate nào
   const _origRecalc = Player.recalculateStats.bind(Player);
   Player.recalculateStats = function () {
-    _origRecalc();                                    // original: equip + pet bonuses
-    CultivationMethodSystem.applyToStats(this);       // method override
-    FateSystem.applyFates();                          // fate flags on top
+    _origRecalc();
+    CultivationMethodSystem.applyToStats(this);
+    if (FateSystem.state.rolled && FateSystem.state.fates.length > 0) {
+      FateSystem.applyFates();
+    }
   };
 
   // ── 2. takeDamage — undying fate ─────────────────────────
@@ -949,6 +1011,8 @@ function _installHooks() {
     }
   };
 
+  // QUAN TRỌNG: load build data ngay trong Game.load wrap
+  // để FateSystem.state.rolled được set TRƯỚC khi CharacterBuildFeature.init check nó
   const _origLoad = Game.load.bind(Game);
   Game.load = function () {
     const result = _origLoad.call(this);
@@ -958,8 +1022,9 @@ function _installHooks() {
         const d = JSON.parse(raw);
         CultivationMethodSystem.loadSaveData(d.method);
         FateSystem.loadSaveData(d.fate);
-        // Re-apply fates after load
-        if (FateSystem.state.rolled) FateSystem.applyFates();
+        // Sau khi load state xong, apply lại để Player có đúng flags
+        // recalculateStats sẽ tự gọi applyFates nếu rolled=true
+        Player.recalculateStats();
       }
     } catch (e) {
       console.error('Build load error:', e);
@@ -996,7 +1061,7 @@ function _installHooks() {
 
 const CharacterBuildFeature = {
   init() {
-    // Register items
+    // Register items trước khi bất kỳ thứ gì dùng đến chúng
     if (typeof ITEMS !== 'undefined') {
       ITEMS.methodPill = {
         name: 'Tâm Pháp Hoán Đổi Đan', type: 'consumable', rarity: 'epic',
@@ -1012,24 +1077,35 @@ const CharacterBuildFeature = {
 
     _injectBuildStyles();
     _installHooks();
+    // Không gọi recalculateStats() ở đây —
+    // Game.load() đã được wrap và tự gọi Player.recalculateStats() sau khi load build data.
+    // Nếu không có save (lần đầu), state.rolled = false → show modal bên dưới.
 
-    // Recalc to apply loaded data
-    Player.recalculateStats();
-
-    // First-time fate roll
+    // Hiện first-time fate modal nếu chưa từng roll
+    // Dùng setTimeout để đảm bảo loading screen đã hiện và game đã start
     if (!FateSystem.state.rolled) {
-      setTimeout(() => FateSystem.showFirstTimeRoll(), 500);
+      // showLoading → click → start() → loop bắt đầu
+      // Ta hook vào Game.start thay vì setTimeout cố định
+      const _origStart = Game.start.bind(Game);
+      Game.start = function () {
+        _origStart.call(this);
+        if (!FateSystem.state.rolled) {
+          setTimeout(() => FateSystem.showFirstTimeRoll(), 600);
+        }
+      };
     }
 
     console.log('📖 Character Build System loaded (Method + Fate)');
   }
 };
 
-// Hook into Game.init
+// Hook vào Game.init
+// QUAN TRỌNG: CharacterBuildFeature.init() phải chạy TRƯỚC _origGameInit
+// vì _origGameInit gọi Game.load() — và Game.load hook cần đã được cài sẵn
 const _origGameInit = Game.init.bind(Game);
 Game.init = function () {
-  _origGameInit.call(this);
-  CharacterBuildFeature.init();
+  CharacterBuildFeature.init();   // cài hooks + items + check rolled
+  _origGameInit.call(this);       // Player.init → Game.load → ... → showLoading
 };
 
 console.log('📖 Character Build System loaded (Method + Fate)');
