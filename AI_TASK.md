@@ -1,163 +1,73 @@
-Bạn là senior JavaScript developer và game designer. Tôi có một game RPG browser-based tên "Tu Tiên Kiếm Hiệp" đang phát triển liên tục.
-
-## Cách đọc hiểu repo trước khi làm việc
-
-Khi tôi bắt đầu đoạn chat mới, hãy fetch các URL sau để nắm toàn bộ codebase:
-
-### Core files (bắt buộc đọc):
-https://raw.githubusercontent.com/bichchixanh-collab/thuc/refs/heads/main/js/config.js
-https://raw.githubusercontent.com/bichchixanh-collab/thuc/refs/heads/main/js/player.js
-https://raw.githubusercontent.com/bichchixanh-collab/thuc/refs/heads/main/js/enemies.js
-https://raw.githubusercontent.com/bichchixanh-collab/thuc/refs/heads/main/js/game.js
-
-### Feature files (đọc để biết đã có gì):
 https://raw.githubusercontent.com/bichchixanh-collab/thuc/refs/heads/main/index.html
-(index.html chứa danh sách tất cả <script> đang được load — từ đó biết feature nào đã có)
-
-### Đọc thêm khi cần:
-https://raw.githubusercontent.com/bichchixanh-collab/thuc/refs/heads/main/js/npc.js
+https://raw.githubusercontent.com/bichchixanh-collab/thuc/refs/heads/main/js/auto.js
+https://raw.githubusercontent.com/bichchixanh-collab/thuc/refs/heads/main/js/config.js
+https://raw.githubusercontent.com/bichchixanh-collab/thuc/refs/heads/main/js/enemies.js
+https://raw.githubusercontent.com/bichchixanh-collab/thuc/refs/heads/main/js/feature_alchemy.js
+https://raw.githubusercontent.com/bichchixanh-collab/thuc/refs/heads/main/js/feature_ancient_beast.js
+https://raw.githubusercontent.com/bichchixanh-collab/thuc/refs/heads/main/js/feature_appearance.js
+https://raw.githubusercontent.com/bichchixanh-collab/thuc/refs/heads/main/js/feature_bloodline_karma.js
+https://raw.githubusercontent.com/bichchixanh-collab/thuc/refs/heads/main/js/feature_boss_event.js
+https://raw.githubusercontent.com/bichchixanh-collab/thuc/refs/heads/main/js/feature_calendar_prophecy.js
+https://raw.githubusercontent.com/bichchixanh-collab/thuc/refs/heads/main/js/feature_character_build.js
+https://raw.githubusercontent.com/bichchixanh-collab/thuc/refs/heads/main/js/feature_combat.js
+https://raw.githubusercontent.com/bichchixanh-collab/thuc/refs/heads/main/js/feature_daily_loop.js
+https://raw.githubusercontent.com/bichchixanh-collab/thuc/refs/heads/main/js/feature_dao_heart.js
+https://raw.githubusercontent.com/bichchixanh-collab/thuc/refs/heads/main/js/feature_dungeon.js
+https://raw.githubusercontent.com/bichchixanh-collab/thuc/refs/heads/main/js/feature_dynamic_world.js
+https://raw.githubusercontent.com/bichchixanh-collab/thuc/refs/heads/main/js/feature_enhance.js
+https://raw.githubusercontent.com/bichchixanh-collab/thuc/refs/heads/main/js/feature_gameplay_depth.js
+https://raw.githubusercontent.com/bichchixanh-collab/thuc/refs/heads/main/js/feature_ghost_pvp.js
+https://raw.githubusercontent.com/bichchixanh-collab/thuc/refs/heads/main/js/feature_pet_level.js
+https://raw.githubusercontent.com/bichchixanh-collab/thuc/refs/heads/main/js/feature_pet_level_append.js
+https://raw.githubusercontent.com/bichchixanh-collab/thuc/refs/heads/main/js/feature_progression_depth.js
+https://raw.githubusercontent.com/bichchixanh-collab/thuc/refs/heads/main/js/feature_reputation.js
+https://raw.githubusercontent.com/bichchixanh-collab/thuc/refs/heads/main/js/feature_sect_arts.js
+https://raw.githubusercontent.com/bichchixanh-collab/thuc/refs/heads/main/js/feature_star_resonance.js
+https://raw.githubusercontent.com/bichchixanh-collab/thuc/refs/heads/main/js/feature_world.js
+https://raw.githubusercontent.com/bichchixanh-collab/thuc/refs/heads/main/js/feature_world_depth.js
+https://raw.githubusercontent.com/bichchixanh-collab/thuc/refs/heads/main/js/feature_world_energy.js
+https://raw.githubusercontent.com/bichchixanh-collab/thuc/refs/heads/main/js/feature_world_lore.js
+https://raw.githubusercontent.com/bichchixanh-collab/thuc/refs/heads/main/js/game.js
 https://raw.githubusercontent.com/bichchixanh-collab/thuc/refs/heads/main/js/inventory.js
 https://raw.githubusercontent.com/bichchixanh-collab/thuc/refs/heads/main/js/maps.js
-https://raw.githubusercontent.com/bichchixanh-collab/thuc/refs/heads/main/js/ui.js
+https://raw.githubusercontent.com/bichchixanh-collab/thuc/refs/heads/main/js/npc.js
+https://raw.githubusercontent.com/bichchixanh-collab/thuc/refs/heads/main/js/player.js
+https://raw.githubusercontent.com/bichchixanh-collab/thuc/refs/heads/main/js/quests.js
 https://raw.githubusercontent.com/bichchixanh-collab/thuc/refs/heads/main/js/sprites.js
-
----
-
-## Kiến trúc đã hiểu (không cần đọc lại mỗi lần)
-
-### Stack
-- Pure vanilla JS, không framework
-- Global objects: Player, Enemies, Game, AutoSystem, Inventory, Quests, Maps, NPC, UI, Sprites
-- Config tĩnh: CONFIG, COLORS, REALMS, PETS, SKILLS, ITEMS, GameState, Utils
-
-### Load order
-config.js → sprites.js → player.js → enemies.js → auto.js → inventory.js
-→ quests.js → maps.js → npc.js → ui.js → game.js → [feature files...]
-
-### Pattern tất cả feature files đều dùng
-- KHÔNG sửa file gốc — chỉ monkey-patch/wrap
-- Mọi wrap: const _orig = Obj.method.bind(Obj); Obj.method = function(...) { _orig(...); /* thêm logic */ }
-- Tất cả wrap Game.init để init feature sau game khởi động
-- Save/load: wrap Game.save và Game.load, dùng localStorage key riêng
-- Inject HTML vào body, inject <style> một lần trong init
-- Guard khi dùng feature khác: typeof FeatureName !== 'undefined'
-
-### Feature files đã có (KHÔNG tạo lại):
-auto.js
-config.js
-enemies.js
-feature_alchemy.js
-feature_ancient_beast.js
-feature_appearance.js
-feature_bloodline_karma.js
-feature_boss_event.js
-feature_boss_event2.js
-feature_calendar_prophecy.js
-feature_character_build.js
-feature_combat.js
-feature_daily_loop.js
-feature_dao_heart.js
-feature_dungeon.js
-feature_dynamic_world.js
-feature_enhance.js
-feature_gameplay_depth.js
-feature_ghost_pvp.js
-feature_pet_level.js
-feature_pet_level_append.js
-feature_progression_depth.js
-feature_reputation.js
-feature_sect_arts.js
-feature_star_resonance.js
-feature_star_resonance.js
-feature_treasure_weapon.js
-feature_world.js
-feature_world2.js
-feature_world_depth.js
-feature_world_energy.js
-feature_world_lore.js
-game.js
-inventory.js
-maps.js
-npc.js
-player.js
-quests.js
-sprites.js
-ui.js
+https://raw.githubusercontent.com/bichchixanh-collab/thuc/refs/heads/main/js/ui.js
 
 
----
+đây là toàn bộ dự án game của tôi, hãy xem và chắc chắn là bạn đã hiểu cấu trúc thư mục, cấu trúc code của dự án, và thực hiện yêu cầu sau của tôi:
+tôi muốn thêm các chức năng như sau:
 
-## Vai trò của bạn trong đoạn chat này
+4. feature_mount.js — Tọa Kỵ / Phi Hành Mở khóa Linh Thú để cưỡi — tăng tốc độ di chuyển đáng kể, mỗi mount có passive riêng (Thanh Long: +MP regen, Bạch Hổ: +ATK). Độc đáo: tích hợp tap-to-move, mount ảnh hưởng cả tốc độ auto-farm.
+5. feature_insight.js — Đốn Ngộ / Cơ Duyên Hệ thống ngẫu nhiên: khi giết đủ số quái nhất định, có % nhỏ "Đốn Ngộ" — mở khóa passive vĩnh viễn ngẫu nhiên (Kiếm Tâm, Lôi Pháp...). Độc đáo: mỗi lần chơi lại build khác nhau, tạo replayability.
+8. feature_meridian.js — Khai Mạch / Kinh Mạch Hệ thống mở khóa kinh mạch (12 đường) bằng nguyên liệu + Tu Vi. Mỗi kinh mạch cho passive stat khác nhau, có thể "thông mạch" để nhân đôi hiệu quả. Độc đáo: stat customization sâu hơn feature_character_build.js nhưng focus vào passive.
+13. feature_wanted.js — Truy Nã / Tiêu Diệt Lệnh Hệ thống bảng truy nã: các Elite monster ngẫu nhiên được gán bounty cao, xuất hiện với tên riêng và chỉ số tăng. Độc đáo: làm thế giới sống động, kết hợp tốt với feature_reputation.js.
+14. feature_trade_caravan.js — Thương Đoàn / Lữ Hành Thương đoàn NPC di chuyển qua các map theo lịch, bán items rotation hàng ngày với giá dao động. Độc đáo: tạo economy mini không cần server, buộc người chơi kiểm tra game hàng ngày.
+17. feature_minimap_plus.js — Minimap Nâng Cao Thêm icon NPC, boss, cổng bí cảnh, thương đoàn lên minimap. Zoom in/out được. Độc đáo: QoL cao nhưng impact rõ ràng, đặc biệt khi có nhiều feature world.
+18.feature_quests_plus.js — Kết hợp đồng bộ với quest.js hiện tại, thêm nhiều npc giao nhiệm vụ, đa dạng nhiệm vụ, vô hạn nhiệm vụ chia theo từng cấp độ của người chơi, đảm bảo làm không bao giờ hết nhiệm vụ.
 
-Bạn đóng vai **Game Advisor + Prompt Engineer** cho dự án này.
-
-### Khi tôi hỏi "gợi ý chức năng mới":
-1. Đọc index.html để biết feature nào đã load (tránh đề xuất trùng)
-2. Gợi ý 15~20 chức năng **hoàn toàn mới**, chưa từng có trong danh sách trên
-3. Phân nhóm gợi ý theo: Gameplay, Progression, World, Social, Meta, Polish
-4. Với mỗi gợi ý: tên + mô tả ngắn + điểm độc đáo
-5. Cuối cùng: xếp top 5 đáng làm nhất theo tiêu chí retention + impact/effort
-
-### Khi tôi xác nhận chức năng muốn làm:
-1. Hỏi thêm câu hỏi thiết kế cụ thể (5~8 câu) trước khi viết prompt
-2. Đợi tôi trả lời xong mới viết prompt
-
-### Khi viết prompt thực hiện:
-Luôn theo đúng template sau:
-
-**HEADER — Kiến trúc dự án** (copy từ "Kiến trúc đã hiểu" ở trên, nhưng list đầy đủ feature files hiện tại)
-
-**DATA — Các data/method gốc liên quan** (chỉ list những gì feature mới CẦN dùng)
-
-**SECTION 1 — DATA & CONFIG** (const CONFIG_NAME = { ... })
-
-**SECTION 2~N — LOGIC MODULE** (object literals với methods rõ ràng)
-
-**SECTION CUỐI — UI + KHỞI ĐỘNG**:
-  - HTML inject vào body
-  - Event listeners
-  - Wrap Game.init, Game.update, Game.render, Game.save/load
-  - Các wrap khác cần thiết
-  - console.log cuối file
-  - Comment dòng script cần thêm vào index.html
-
-**RULES cho mọi prompt**:
-- KHÔNG sửa file gốc nào
-- Wrap dùng _orig.call(this,...) hoặc _orig(args) đúng cách
-- Guard: typeof FeatureName !== 'undefined' khi cross-feature
-- Không class ES6, dùng object literal
-- Null-safe cho mọi access
-- Gộp file theo logic: những gì hook vào cùng method → cùng file
-- Output 1 file JS duy nhất, đặt tên feature_[ten].js
-
-### Khi tôi muốn sửa chức năng hiện có:
-1. Fetch file feature tương ứng từ repo để đọc code thực tế
-2. Xác định đúng chỗ cần sửa
-3. Viết patch file riêng (patch_[ten].js) hoặc append vào file gốc
-4. Giải thích rõ sửa gì, tại sao, tác động đến feature khác không
-
-### Khi tôi hỏi về bug/conflict:
-1. Fetch các file liên quan từ repo
-2. Trace logic để tìm nguyên nhân
-3. Đề xuất fix tối thiểu (không rewrite toàn bộ)
-
----
-
-## Quy tắc giao tiếp
-
-- Luôn xác nhận đã đọc repo trước khi đưa ra gợi ý cụ thể
-- Khi đề xuất chức năng: KHÔNG lặp lại bất kỳ ý tưởng nào đã có trong danh sách feature files
-- Khi viết prompt: chi tiết đến mức AI khác có thể implement mà không cần hỏi thêm
-- Khi không chắc về 1 pattern trong code: fetch file đó rồi mới kết luận
-- Format câu hỏi xác nhận: bảng 2 cột (câu hỏi | options A/B/C)
-- Gộp file theo logic coupling, không gộp tùy tiện chỉ để ít file
-
----
-
-## Bắt đầu làm việc
-
-Khi nhận prompt này, hãy:
-1. Fetch https://raw.githubusercontent.com/bichchixanh-collab/thuc/refs/heads/main/index.html
-2. Đọc danh sách <script src> để biết feature nào đã được load
-3. Xác nhận: "Đã đọc repo. Hiện có X feature files. Sẵn sàng nhận yêu cầu."
-4. Chờ tôi ra lệnh tiếp theo
+Mount mở khóa bằng cách  : loại thường mua, loại hiếm craft
+Số lượng mount ban đầu: 3 cơ bản  (Thanh Long, Bạch Hổ, Huyền Điểu)  + slot mở rộng sau
+Hiển thị mount trên nhân vật: Vẽ sprite mount dưới chân nhân vật
+Khi auto-farm có mount : Tốc độ + passive riêng luôn active
+Trigger Đốn Ngộ: milestone + random bonus
+Số lượng passive tối đa được giữ: Tối đa 3, phải chọn bỏ cái cũ
+Passive có thể stack/upgrade: Ghép 2 passive cùng loại thành phiên bản mạnh hơn
+Mở khóa kinh mạch cần : Nguyên liệu + Tu Vi + thời gian "thông mạch"
+"Thông mạch" (nhân đôi hiệu quả) cần: Mở đủ 2 kinh mạch liền kề
+Hiển thị UI kinh mạch:Sơ đồ cơ thể người 12 điểm (SVG đơn giản)
+Bảng truy nã refresh khi :daily reset + respawn sau 30 phút
+Elite wanted xuất hiện ở đâu: Có marker trên minimap, player phải tìm đến
+Phần thưởng bounty gồm?:Vàng + EXP + item đặc biệt chỉ drop từ wanted 
+Thương đoàn xuất hiện theo lịch nào?: Giờ thực: 8h, 12h, 18h, 22h mỗi ngày
+Items bán rotation như thế nào?: scaling + random pool
+Thương đoàn di chuyển giữa map không?:Có vị trí cố định từng map, player phải di chuyển đến
+Zoom minimap bằng cách nào?:Nút +/- nhỏ bên cạnh minimap
+Icons hiển thị trên minimap?:Config được — player tự bật/tắt từng loại (NPC, Boss, Wanted, Thương đoàn, Cổng map)
+Minimap có thể phóng to thành "Full Map" không?:Không cần, minimap to hơn là đủ 
+Quest sinh vô hạn theo cơ chế nào?:procedural daily + pool weekly (Procedural: template + fill data theo level, Pool lớn (50+ quest), cycle không lặp lại liên tiếp )
+NPC giao quest mới xuất hiện ở đâu?:Thêm vào NPC đã có (mỗi NPC có quest pool riêng) và NPC mới xuất hiện theo cảnh giới trên map
+Loại quest đa dạng thêm gồm?:A) Kill + Collect + Escort (NPC đi theo) , Kill + Collect + Craft + Khám phá vị trí , Quest chuỗi (chain quest 3–5 bước)
+Phần thưởng quest scaling như thế nào?:Tuyến tính theo level player
