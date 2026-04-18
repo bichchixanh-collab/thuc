@@ -27,6 +27,17 @@ https://raw.githubusercontent.com/bichchixanh-collab/thuc/refs/heads/main/js/fea
 https://raw.githubusercontent.com/bichchixanh-collab/thuc/refs/heads/main/js/feature_world_depth.js
 https://raw.githubusercontent.com/bichchixanh-collab/thuc/refs/heads/main/js/feature_world_energy.js
 https://raw.githubusercontent.com/bichchixanh-collab/thuc/refs/heads/main/js/feature_world_lore.js
+
+https://raw.githubusercontent.com/bichchixanh-collab/thuc/refs/heads/main/js/feature_achievement_shrine.js
+https://raw.githubusercontent.com/bichchixanh-collab/thuc/refs/heads/main/js/feature_insight.js
+https://raw.githubusercontent.com/bichchixanh-collab/thuc/refs/heads/main/js/feature_meridian.js
+https://raw.githubusercontent.com/bichchixanh-collab/thuc/refs/heads/main/js/feature_minimap_plus.js
+https://raw.githubusercontent.com/bichchixanh-collab/thuc/refs/heads/main/js/feature_quests_plus.js
+https://raw.githubusercontent.com/bichchixanh-collab/thuc/refs/heads/main/js/feature_trade_caravan.js
+https://raw.githubusercontent.com/bichchixanh-collab/thuc/refs/heads/main/js/feature_wandering_immortal.js
+https://raw.githubusercontent.com/bichchixanh-collab/thuc/refs/heads/main/js/feature_wanted.js
+
+
 https://raw.githubusercontent.com/bichchixanh-collab/thuc/refs/heads/main/js/game.js
 https://raw.githubusercontent.com/bichchixanh-collab/thuc/refs/heads/main/js/inventory.js
 https://raw.githubusercontent.com/bichchixanh-collab/thuc/refs/heads/main/js/maps.js
