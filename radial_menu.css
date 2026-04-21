@@ -1,0 +1,151 @@
+/* ==================== RADIAL MENU ==================== */
+
+#radialCenter {
+  position: fixed;
+  width: 56px;
+  height: 56px;
+  border-radius: 50%;
+  background: linear-gradient(135deg, #1a1a2e, #0d1117);
+  border: 3px solid #f0c040;
+  box-shadow: 0 0 18px rgba(240,192,64,0.5), inset 0 0 12px rgba(0,0,0,0.4);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  color: #f0c040;
+  font-size: 22px;
+  cursor: pointer;
+  z-index: 9000;
+  user-select: none;
+  -webkit-user-select: none;
+  touch-action: none;
+  transition: box-shadow 0.2s, border-color 0.2s;
+}
+
+#radialCenter.open {
+  border-color: #ffe082;
+  box-shadow: 0 0 28px rgba(240,192,64,0.9), inset 0 0 12px rgba(0,0,0,0.4);
+  animation: rcPulse 2s infinite;
+}
+
+@keyframes rcPulse {
+  0%,100% { box-shadow: 0 0 28px rgba(240,192,64,0.8), inset 0 0 12px rgba(0,0,0,0.4); }
+  50%      { box-shadow: 0 0 42px rgba(240,192,64,1.0), inset 0 0 12px rgba(0,0,0,0.4); }
+}
+
+/* Backdrop: z-index THẤP HƠN nút con để không che */
+#radialBackdrop {
+  position: fixed;
+  inset: 0;
+  z-index: 8700;
+  display: none;
+  background: rgba(0,0,0,0.20);
+  pointer-events: none;
+}
+#radialBackdrop.open {
+  display: block;
+  pointer-events: auto;
+}
+
+/* Nút con: z-index CAO HƠN backdrop */
+.radial-item {
+  position: fixed;
+  width: 54px;
+  height: 54px;
+  border-radius: 50%;
+  background: linear-gradient(135deg, #1a1a2e, #0d1117);
+  border: 2px solid #888;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  color: #ddd;
+  font-size: 9px;
+  text-align: center;
+  cursor: pointer;
+  z-index: 8900;
+  user-select: none;
+  -webkit-user-select: none;
+  touch-action: manipulation;
+  box-shadow: 0 4px 12px rgba(0,0,0,0.5);
+  pointer-events: none;
+  transform: translate(-50%,-50%) scale(0);
+  opacity: 0;
+  transition: transform 0.35s cubic-bezier(0.34,1.56,0.64,1),
+              opacity 0.25s ease;
+}
+
+.radial-item.open {
+  transform: translate(-50%,-50%) scale(1);
+  opacity: 1;
+  pointer-events: auto;
+}
+
+.radial-item .ri-icon {
+  font-size: 18px;
+  line-height: 1;
+  margin-bottom: 2px;
+  pointer-events: none;
+}
+
+.radial-item .ri-label {
+  font-size: 8px;
+  color: #bbb;
+  white-space: nowrap;
+  font-family: 'Courier New', monospace;
+  pointer-events: none;
+}
+
+.radial-item:hover {
+  border-color: #f0c040 !important;
+  box-shadow: 0 0 16px rgba(240,192,64,0.6) !important;
+  color: #f0c040;
+  transform: translate(-50%,-50%) scale(1.12);
+}
+
+.radial-item:active {
+  transform: translate(-50%,-50%) scale(0.9) !important;
+}
+
+.radial-item[data-key="character"]  { border-color: #64b5f6; }
+.radial-item[data-key="inventory"]  { border-color: #cd853f; }
+.radial-item[data-key="meridian"]   { border-color: #4caf50; }
+.radial-item[data-key="wandering"]  { border-color: #8ef;    }
+.radial-item[data-key="caravan"]    { border-color: #ffd700; }
+.radial-item[data-key="quest"]      { border-color: #f0c040; }
+.radial-item[data-key="map"]        { border-color: #66bb6a; }
+.radial-item[data-key="questsplus"] { border-color: #ff9800; }
+.radial-item[data-key="pvp"]        { border-color: #ef5350; }
+
+/* ==================== DRAG PANEL HEADER ==================== */
+.modal-header.drag-handle { cursor: grab; }
+.modal-header.drag-handle:active { cursor: grabbing; }
+
+body.panel-dragging { user-select: none; -webkit-user-select: none; cursor: grabbing; }
+
+/* ==================== DU TIÊN PANEL ==================== */
+#wanderingInfoPanel {
+  position: fixed;
+  inset: 0;
+  background: rgba(0,0,0,0.78);
+  z-index: 10000;
+  display: none;
+  align-items: center;
+  justify-content: center;
+  backdrop-filter: blur(2px);
+}
+#wanderingInfoPanel.show { display: flex; }
+
+#wanderingInfoInner {
+  background: linear-gradient(135deg,#1a1a2e,#0d1117);
+  border: 3px solid #8ef;
+  border-radius: 15px;
+  padding: 18px;
+  width: 92%;
+  max-width: 400px;
+  max-height: 82vh;
+  overflow-y: auto;
+  box-shadow: 0 0 40px rgba(136,238,255,0.2);
+}
+
+#wanderingInfoInner::-webkit-scrollbar { width: 4px; }
+#wanderingInfoInner::-webkit-scrollbar-thumb { background: #8ef; border-radius: 2px; }
