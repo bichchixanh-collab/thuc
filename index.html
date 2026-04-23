@@ -1580,6 +1580,21 @@
 <script src="patch_gameplay.js"></script>
 <script src="patch_ui.js"></script>
 
+<!-- F2 load sớm vì không phụ thuộc feature khác -->
+<script src="js/feature_living_map.js"></script>
+
+<!-- F3 load sau combat (cần ElementSystem) và boss_event -->
+<script src="js/feature_knowledge_system.js"></script>
+
+<!-- F1 load sau boss_event (wrap BossEventSystem) -->
+<script src="js/feature_adaptive_boss.js"></script>
+
+<!-- F4 load sau cùng (phụ thuộc tất cả: dungeon, ghost_pvp, wanted) -->
+<script src="js/feature_failure_rewards.js"></script>
+
+<script src="js/feature_boss_tame.js"></script>
+
+
 </body>
 	
 	
