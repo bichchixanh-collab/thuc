@@ -1,0 +1,86 @@
+/* ==================== PATCH VISUAL (v2) ====================
+   CSS hỗ trợ 4 module visual FX
+   FIX:
+   - Bỏ backdrop-filter trên modal/dialog (nặng trên mobile)
+   - Bỏ body filter transition
+   - Chỉ giữ animation nhẹ cần thiết
+   ========================================================= */
+
+/* ---- Base overlay rendering ---- */
+#vfx-overlay,
+#vfx-particles,
+#px-container {
+  image-rendering: auto;
+  backface-visibility: hidden;
+  -webkit-backface-visibility: hidden;
+}
+
+/* ==================== COMBAT LOG POLISH ==================== */
+.log-msg {
+  text-shadow: 0 0 5px currentColor, 1px 1px 3px #000;
+}
+.log-msg.damage {
+  text-shadow: 0 0 7px rgba(255,80,80,0.5), 1px 1px 3px #000;
+}
+.log-msg.realm {
+  text-shadow: 0 0 9px rgba(220,60,250,0.6), 1px 1px 3px #000;
+}
+
+/* ==================== HUD POLISH ==================== */
+
+/* Skill button smooth press */
+.skill-btn {
+  transition: transform 0.1s, box-shadow 0.12s;
+}
+
+/* Quest tracker glass effect (nhẹ hơn backdrop-filter) */
+#questTracker {
+  background: rgba(0,0,0,0.72);
+}
+
+/* ==================== MAP TRANSITION ==================== */
+@keyframes mapEnterFade {
+  0%   { opacity: 0; }
+  100% { opacity: 1; }
+}
+.map-enter-anim {
+  animation: mapEnterFade 0.5s ease-out forwards;
+}
+
+/* ==================== NPC DIALOG (không backdrop-filter) ==================== */
+/* Đã có background gradient, không cần blur */
+#npcDialog {
+  background: linear-gradient(135deg, rgba(18,18,40,0.97), rgba(14,18,35,0.97));
+}
+
+/* ==================== NOTIFICATION ==================== */
+.notification {
+  background: rgba(0,0,0,0.92);
+}
+
+/* ==================== SMOOTH BARS ==================== */
+.stat-bar-fill {
+  transition: width 0.35s ease;
+}
+.realm-progress-fill {
+  transition: width 0.5s ease;
+}
+
+/* ==================== TAP RIPPLE ==================== */
+@keyframes tapRipple {
+  0%   { transform: scale(0.4); opacity: 0.7; }
+  100% { transform: scale(2.2); opacity: 0; }
+}
+#tapMoveIndicator > div {
+  animation: tapRipple 0.45s ease-out forwards;
+}
+
+/* ==================== AUTO BTN TEXT GLOW ==================== */
+.auto-btn.active span {
+  text-shadow: 0 0 6px currentColor;
+}
+
+/* ==================== MENU BTN HOVER ==================== */
+.menu-btn {
+  transition: transform 0.1s, border-color 0.15s, background 0.15s;
+}
