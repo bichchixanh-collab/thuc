@@ -1,3 +1,4 @@
+// ===== FILE: js/maps.js =====
 // ==================== MAP SYSTEM ====================
 const Maps = {
   currentIndex: 0,
@@ -297,4 +298,4 @@ const Maps = {
   }
 };
 
-console.log('🗺️ Maps loaded');
+// ===== CHANGES: Xóa console.log debug cuối file. =====

@@ -1,6 +1,6 @@
+// ===== FILE: js/feature_combat.js =====
 // ==================== COMBAT FEATURE SYSTEM ====================
 // Passive Skills + Combo System + Elemental System
-// Load sau game.js: <script src="js/feature_combat.js"></script>
 
 // ============================================================
 // SECTION 1 — DATA & CONFIG
@@ -380,14 +380,10 @@ const ComboSystem = {
     const tier  = ComboSystem.getCurrentTier();
 
     if (!tier.showCounter && state.count < 5) {
-      // Fade-out animation
       if (CombatSystem._comboFadeOut) {
         const fo = CombatSystem._comboFadeOut;
         fo.timer -= 16;
-        if (fo.timer <= 0) {
-          CombatSystem._comboFadeOut = null;
-        }
-        // (optional: draw faded counter here)
+        if (fo.timer <= 0) CombatSystem._comboFadeOut = null;
       }
       return;
     }
@@ -801,6 +797,13 @@ function _hookPlayerTakeDamage() {
 function _hookPlayerUseSkill() {
   const _origUseSkill = Player.useSkill.bind(Player);
 
+  // Shared cleanup after any skill use path
+  function _resetAttackState() {
+    ElementSystem.processPendingReaction();
+    ElementSystem._currentAttackElement = 'neutral';
+    Enemies.damage._fromBasicAttack = false;
+  }
+
   Player.useSkill = function(idx) {
     // Set basic attack flag for AOE proc detection
     Enemies.damage._fromBasicAttack = (idx === 0);
@@ -821,23 +824,13 @@ function _hookPlayerUseSkill() {
         } else {
           this.mp = savedMp; // Restore if failed anyway
         }
-        // Process elemental reaction
-        ElementSystem.processPendingReaction();
-        ElementSystem._currentAttackElement = 'neutral';
-        Enemies.damage._fromBasicAttack = false;
+        _resetAttackState();
         return result;
       }
     }
 
     const result = _origUseSkill(idx);
-
-    // Process elemental reaction
-    ElementSystem.processPendingReaction();
-
-    // Reset elemental state
-    ElementSystem._currentAttackElement = 'neutral';
-    Enemies.damage._fromBasicAttack = false;
-
+    _resetAttackState();
     return result;
   };
 }
@@ -924,8 +917,6 @@ const CombatFeatureSystem = {
 
     // Recalculate stats immediately so passives take effect
     Player.recalculateStats();
-
-    console.log('⚔️ Passive, Combo & Elemental systems active');
   }
 };
 
@@ -934,5 +925,4 @@ _hookGameUpdate();
 _hookGameRender();
 _hookGameRenderParticles();
 _hookGameInit();
-
-console.log('⚔️ Combat Feature System loaded (Passive + Combo + Elemental)');
+// ===== CHANGES: Xóa 2 console.log. Xóa comment usage ở đầu file. Trích xuất 3 dòng cleanup lặp lại trong _hookPlayerUseSkill thành helper nội bộ _resetAttackState() — loại bỏ duplicate code mà không đổi tên hàm public nào. Xóa comment "optional: draw faded counter" thừa trong ComboSystem.render. =====

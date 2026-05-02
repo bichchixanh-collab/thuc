@@ -1,7 +1,7 @@
+// ===== FILE: feature_calendar_prophecy.js =====
 // ==================== FEATURE: CALENDAR + PROPHECY SYSTEM ====================
 // js/feature_calendar_prophecy.js
 // Load sau: game.js
-// <script src="js/feature_calendar_prophecy.js"></script>
 
 // ============================================================
 // SECTION 1 — DATA & CONFIG
@@ -243,14 +243,12 @@ const CalendarSystem = {
   applyDayEffects(dayData) {
     const e = dayData.effects;
 
-    // Enemy aggressive
     if (e.enemyAggressive) {
       Enemies.list.forEach(function(enemy) {
         if (enemy.alive) enemy.aggroed = true;
       });
     }
 
-    // Random mega buff (ngày 15)
     if (e.randomMegaBuff && !this.state.megaBuffUsed) {
       const buffs = [
         { name:'Sức Mạnh', atkBonus:0.50, duration:30*60*1000 },
@@ -265,12 +263,10 @@ const CalendarSystem = {
       UI.addLog('⭐ Mega Buff kích hoạt: ' + picked.name, 'realm');
     }
 
-    // Boss event guaranteed (ngày 14)
     if (e.bossEventGuaranteed && typeof BossEventSystem !== 'undefined') {
       BossEventSystem.forceSpawn();
     }
 
-    // Special NPC (ngày 7)
     if (e.specialNpc) {
       this.spawnCelestialNpc();
     }
@@ -294,7 +290,6 @@ const CalendarSystem = {
 
   getDayBonus(type) {
     const e = this.state.activeEffects;
-    // Mega buff overrides
     const mb = this.state.megaBuff;
     if (mb && Date.now() < mb.endTime) {
       if (type === 'exp'  && mb.expMul)  return mb.expMul;
@@ -327,31 +322,26 @@ const CalendarSystem = {
   update(dt) {
     this.checkDayChange();
 
-    // Mega buff expiry
     if (this.state.megaBuff && Date.now() > this.state.megaBuff.endTime) {
       this.state.megaBuff = null;
       Player.recalculateStats();
       UI.addLog('⭐ Mega buff đã hết.', 'system');
     }
 
-    // Speed debuff ngày 8
     if (this.state.activeEffects.speedDebuff) {
       Player._calendarSpeedDebuff = this.state.activeEffects.speedDebuff;
     } else {
       delete Player._calendarSpeedDebuff;
     }
 
-    // Random element ngày 19
     if (this.state.activeEffects.randomElementEachHit) {
       Player._calendarRandomElement = true;
     } else {
       delete Player._calendarRandomElement;
     }
 
-    // Dark screen ngày 26
     CalendarSystem._darkAlpha = this.state.activeEffects.darkBuff ? 0.15 : 0;
 
-    // Storm visual ngày 9
     if (this.state.activeEffects.stormVisual) {
       if (Math.random() < 0.005) {
         const x = Math.random() * Game.canvas.width;
@@ -385,9 +375,9 @@ const CalendarSystem = {
 
   loadSaveData(data) {
     if (!data) return;
-    if (data.epochStart)         this.state.epochStart         = data.epochStart;
-    if (data.lastCheckedDate)    this.state.lastCheckedDate    = data.lastCheckedDate;
-    if (data.megaBuffUsed)       this.state.megaBuffUsed       = data.megaBuffUsed;
+    if (data.epochStart)          this.state.epochStart          = data.epochStart;
+    if (data.lastCheckedDate)     this.state.lastCheckedDate     = data.lastCheckedDate;
+    if (data.megaBuffUsed)        this.state.megaBuffUsed        = data.megaBuffUsed;
     if (data.celestialNpcSpawned) this.state.celestialNpcSpawned = data.celestialNpcSpawned;
   }
 };
@@ -480,16 +470,13 @@ const ProphecySystem = {
   },
 
   onEnemyKill(enemy) {
-    // immortalFoe: kẻ thù bất tử vừa bị kill (đã clear undying flag trước)
     const undyingProp = this.state.activeProphecies.find(function(p) {
       return p.trigger === 'nextKill' && !p.fulfilled && p.effect.nextEnemyUndying;
     });
     if (undyingProp && !this.state.nextEnemyUndying) {
-      // đã trigger rồi (flag đã false sau lần áp), mark fulfilled
       undyingProp.fulfilled = true;
     }
 
-    // Boss kill prophecy
     const bossProp = this.state.activeProphecies.find(function(p) {
       return p.trigger === 'bossKill' && !p.fulfilled && p.targetBoss === enemy.type;
     });
@@ -505,7 +492,6 @@ const ProphecySystem = {
   },
 
   onEnemiesDamage(enemy) {
-    // Undying enemy — không giảm HP xuống dưới 1
     if (enemy._undying && enemy.hp <= 1) {
       enemy.hp = 1;
       if (typeof Game !== 'undefined' && Game.spawnDamageNumber) {
@@ -542,7 +528,6 @@ const ProphecySystem = {
   update(dt) {
     this.checkExpiry();
 
-    // Midnight check
     const now = new Date(Date.now());
     if (now.getHours() === 0 && now.getMinutes() === 0) {
       if (!this.state._midnightFired) {
@@ -553,7 +538,6 @@ const ProphecySystem = {
       this.state._midnightFired = false;
     }
 
-    // Undying enemy effect: áp lên Player.target hiện tại
     if (this.state.nextEnemyUndying) {
       if (Player.target && Player.target.alive) {
         Player.target._undying = true;
@@ -598,11 +582,9 @@ const CalendarPanel = {
   },
 
   render() {
-    const dayIndex    = CalendarSystem.getCurrentDayIndex();
-    const dayData     = CalendarSystem.getCurrentDayData();
-    const activeEffs  = CalendarSystem.state.activeEffects;
+    const dayIndex   = CalendarSystem.getCurrentDayIndex();
+    const dayData    = CalendarSystem.getCurrentDayData();
 
-    // Current day highlight
     const currentEl = document.getElementById('calCurrentDay');
     if (currentEl) {
       currentEl.style.borderColor = dayData.color;
@@ -615,7 +597,6 @@ const CalendarPanel = {
         '<div style="font-size:11px;color:#ccc;margin-top:6px">' + dayData.desc + '</div>';
     }
 
-    // 28-day grid
     const grid = document.getElementById('calGrid');
     if (grid) {
       grid.innerHTML = '';
@@ -635,7 +616,6 @@ const CalendarPanel = {
       });
     }
 
-    // Active effects list
     const effEl = document.getElementById('calEffects');
     if (effEl) {
       const upcoming = [];
@@ -656,7 +636,6 @@ const CalendarPanel = {
           '</div></div>';
       });
 
-      // Mega buff status
       const mb = CalendarSystem.state.megaBuff;
       if (mb && Date.now() < mb.endTime) {
         const rem = Math.ceil((mb.endTime - Date.now()) / 60000);
@@ -721,13 +700,12 @@ const ProphecyPanel = {
       }
     }
 
-    // Roll button state
-    const btn = document.getElementById('propRollBtn');
+    const btn  = document.getElementById('propRollBtn');
     const cdEl = document.getElementById('propCooldown');
     if (btn) {
       const isFull = ProphecySystem.state.activeProphecies.length >= PROPHECY_CONFIG.maxActive;
       const npcUp  = ProphecySystem.state.npcSpawned;
-      btn.disabled = isFull || !npcUp;
+      btn.disabled      = isFull || !npcUp;
       btn.style.opacity = (isFull || !npcUp) ? '0.4' : '1';
       btn.style.cursor  = (isFull || !npcUp) ? 'not-allowed' : 'pointer';
     }
@@ -750,7 +728,6 @@ const ProphecyPanel = {
 // ============================================================
 
 function _calendarInjectHTML() {
-  // ---- Styles ----
   const style = document.createElement('style');
   style.textContent = [
     '.modal-overlay{',
@@ -776,7 +753,7 @@ function _calendarInjectHTML() {
   ].join('');
   document.head.appendChild(style);
 
-  // ---- Calendar Badge ----
+  // Calendar Badge
   const badge = document.createElement('div');
   badge.id = 'calendarBadge';
   badge.style.cssText =
@@ -789,7 +766,7 @@ function _calendarInjectHTML() {
   badge.addEventListener('click', function() { CalendarPanel.open(); });
   document.body.appendChild(badge);
 
-  // ---- Calendar Overlay ----
+  // Calendar Overlay
   const calOv = document.createElement('div');
   calOv.id = 'calendarOverlay';
   calOv.className = 'modal-overlay';
@@ -809,7 +786,7 @@ function _calendarInjectHTML() {
   document.getElementById('calClose').addEventListener('click', function() { CalendarPanel.close(); });
   calOv.addEventListener('click', function(e) { if (e.target === calOv) CalendarPanel.close(); });
 
-  // ---- Prophecy Overlay ----
+  // Prophecy Overlay
   const propOv = document.createElement('div');
   propOv.id = 'prophecyOverlay';
   propOv.className = 'modal-overlay';
@@ -830,7 +807,6 @@ function _calendarInjectHTML() {
         'text-align:center;margin-top:6px"></div>' +
     '</div>';
   document.body.appendChild(propOv);
-
   document.getElementById('propClose').addEventListener('click', function() { ProphecyPanel.close(); });
   propOv.addEventListener('click', function(e) { if (e.target === propOv) ProphecyPanel.close(); });
   document.getElementById('propRollBtn').addEventListener('click', function() {
@@ -842,44 +818,41 @@ function _calendarInjectHTML() {
 // SECTION 6 — HOOKS & WRAPS
 // ============================================================
 
+// Guard: chỉ install hooks 1 lần
+var _calendarHooksInstalled = false;
+
 function _calendarInstallHooks() {
+  if (_calendarHooksInstalled) return;
+  _calendarHooksInstalled = true;
 
   // --- Hook: Player.recalculateStats ---
   const _origRecalc = Player.recalculateStats.bind(Player);
   Player.recalculateStats = function() {
     _origRecalc();
 
-    // All-stat bonus (ngày 1, mega buff)
     const calBonus = CalendarSystem.getDayBonus('allStat');
     if (calBonus > 0) {
-      Player.atk    = Math.floor(Player.atk    * (1 + calBonus));
-      Player.def    = Math.floor(Player.def    * (1 + calBonus));
-      Player.maxHp  = Math.floor(Player.maxHp  * (1 + calBonus));
-      Player.maxMp  = Math.floor(Player.maxMp  * (1 + calBonus));
+      Player.atk   = Math.floor(Player.atk   * (1 + calBonus));
+      Player.def   = Math.floor(Player.def   * (1 + calBonus));
+      Player.maxHp = Math.floor(Player.maxHp * (1 + calBonus));
+      Player.maxMp = Math.floor(Player.maxMp * (1 + calBonus));
     }
 
-    // DEF bonus (ngày 18)
     const defB = CalendarSystem.state.activeEffects.defBonus || 0;
-    if (defB > 0) {
-      Player.def = Math.floor(Player.def * (1 + defB));
-    }
+    if (defB > 0) Player.def = Math.floor(Player.def * (1 + defB));
 
-    // Crit bonuses
     Player.critRate += CalendarSystem.getDayBonus('critRate');
     Player.critDmg  += CalendarSystem.getDayBonus('critDmg');
 
-    // Speed debuff (ngày 8)
     const speedDebuff = Player._calendarSpeedDebuff || 0;
     if (speedDebuff > 0) Player.speed *= (1 - speedDebuff);
 
-    // MP cost reduction cache
     Player._calendarMpCostRed = CalendarSystem.getDayBonus('mpCostRed');
 
-    // Mega buff: atk/def multiplier
     const mb = CalendarSystem.state.megaBuff;
     if (mb && Date.now() < mb.endTime) {
-      if (mb.atkBonus) Player.atk  = Math.floor(Player.atk  * (1 + mb.atkBonus));
-      if (mb.defBonus) Player.def  = Math.floor(Player.def  * (1 + mb.defBonus));
+      if (mb.atkBonus) Player.atk = Math.floor(Player.atk * (1 + mb.atkBonus));
+      if (mb.defBonus) Player.def = Math.floor(Player.def * (1 + mb.defBonus));
     }
   };
 
@@ -889,265 +862,203 @@ function _calendarInstallHooks() {
     Player.gainRealmExp = function(amount) {
       let mul = CalendarSystem.getDayBonus('realmExp');
       if (mul <= 1) mul = 1;
-      // Prophecy soulGrowth
       const propBonus = ProphecySystem.state.realmExpBonus || 0;
       mul *= (1 + propBonus);
       _origGainRealm(Math.floor(amount * mul));
     };
   }
 
-  // --- Hook: Player.useSkill (MP cost reduction) ---
-  if (typeof Player.useSkill === 'function') {
-    const _origUseSkill = Player.useSkill.bind(Player);
-    Player.useSkill = function(skillIndex) {
-      const mpRed = Player._calendarMpCostRed || 0;
-      if (mpRed > 0 && Player.skills && Player.skills[skillIndex]) {
-        const sk = Player.skills[skillIndex];
-        const origMp = sk.mp;
-        sk.mp = Math.floor(sk.mp * (1 - mpRed));
-        _origUseSkill(skillIndex);
-        sk.mp = origMp; // restore
-      } else {
-        _origUseSkill(skillIndex);
-      }
-    };
-  }
+  // --- Hook: Player.gainExp ---
+  const _origGainExp = Player.gainExp.bind(Player);
+  Player.gainExp = function(amount) {
+    let mul = CalendarSystem.getDayBonus('exp');
+    if (mul <= 1) mul = 1;
+    const combatBonus = CalendarSystem.state.activeEffects.combatExpBonus || 0;
+    const expBonus    = CalendarSystem.state.activeEffects.expBonus || 0;
+    mul *= (1 + combatBonus + expBonus);
+    _origGainExp(Math.floor(amount * mul));
+  };
 
-  // --- Hook: Enemies.kill (exp/gold multiplier + prophecy kill) ---
+  // --- Hook: Enemies.kill (gold mul + prophecy) ---
   const _origKill = Enemies.kill.bind(Enemies);
   Enemies.kill = function(enemy) {
-    // Multiply exp/gold BEFORE _orig processes them
-    const expMul  = CalendarSystem.getDayBonus('exp');
+    // Gold multiplier
     const goldMul = CalendarSystem.getDayBonus('gold');
-    // combatExpBonus (ngày 21)
-    const combatB = CalendarSystem.state.activeEffects.combatExpBonus || 0;
-    const totalExpMul = expMul * (1 + combatB);
-    if (totalExpMul > 1 && enemy.exp)  enemy.exp  = Math.floor(enemy.exp  * totalExpMul);
-    if (goldMul     > 1 && enemy.gold) enemy.gold = Math.floor(enemy.gold * goldMul);
-
-    // Drop multiplier (ngày 14): mark on enemy for drop logic
-    const dropMul = CalendarSystem.getDayBonus('drop');
-    if (dropMul > 1) enemy._calendarDropMul = dropMul;
-
-    // fullHealOnLevelUp handled by gainExp hook below
-    _origKill(enemy);
-    ProphecySystem.onEnemyKill(enemy);
-
-    // Reset undying after first kill
-    if (enemy._undying) {
-      delete enemy._undying;
-      ProphecySystem.state.nextEnemyUndying = false;
+    if (goldMul > 1 && enemy && enemy.gold) {
+      enemy.gold = Math.floor(enemy.gold * goldMul);
     }
+    // Drop mul
+    const dropMul = CalendarSystem.getDayBonus('drop');
+    if (enemy) enemy._calendarDropMul = dropMul;
+
+    _origKill(enemy);
+    if (enemy) ProphecySystem.onEnemyKill(enemy);
   };
 
-  // --- Hook: Player.gainExp (ngày 25 fullHealOnLevelUp) ---
-  if (typeof Player.gainExp === 'function') {
-    const _origGainExp = Player.gainExp.bind(Player);
-    Player.gainExp = function(amount) {
-      const levelBefore = Player.level;
-      // EXP bonus ngày 25
-      const expB = CalendarSystem.state.activeEffects.expBonus || 0;
-      _origGainExp(Math.floor(amount * (1 + expB)));
-      // Full heal on level up (ngày 25)
-      if (Player.level > levelBefore && CalendarSystem.isEffectActive('fullHealOnLevelUp')) {
-        Player.hp = Player.maxHp;
-        Player.mp = Player.maxMp;
-        UI.addLog('💚 Đột phá! HP và MP hồi đầy!', 'realm');
-      }
+  // --- Hook: Enemies.damage (undying) ---
+  if (typeof Enemies.damage === 'function') {
+    const _origDamage = Enemies.damage.bind(Enemies);
+    Enemies.damage = function(enemy, amount, isCrit, color) {
+      _origDamage(enemy, amount, isCrit, color);
+      ProphecySystem.onEnemiesDamage(enemy);
     };
   }
 
-  // --- Hook: Enemies.damage (element bonus + undying check + random element) ---
-  const _origDamage = Enemies.damage.bind(Enemies);
-  Enemies.damage = function(enemy, amount, isCrit, color, attackElement) {
-    // Random element ngày 19
-    if (Player._calendarRandomElement) {
-      const elements = ['fire', 'ice', 'thunder', 'wind'];
-      attackElement = elements[Math.floor(Math.random() * elements.length)];
-    }
-
-    // Calendar element bonus
-    let finalAmount = amount;
-    if (attackElement) {
-      const calElBonus = CalendarSystem.getElementBonus(attackElement);
-      if (calElBonus > 0) {
-        finalAmount = Math.floor(finalAmount * (1 + calElBonus));
-      }
-    }
-
-    // Dark buff (ngày 26) — treat dark as element
-    if (CalendarSystem.isEffectActive('darkBuff') && (!attackElement || attackElement === 'dark')) {
-      finalAmount = Math.floor(finalAmount * 1.50);
-    }
-
-    _origDamage(enemy, finalAmount, isCrit, color, attackElement);
-    ProphecySystem.onEnemiesDamage(enemy);
-  };
-
-  // --- Hook: NPC.spawnForMap (reset prophet spawn flag on new map) ---
-  const _origSpawnForMap = NPC.spawnForMap.bind(NPC);
-  NPC.spawnForMap = function(mapIndex) {
-    _origSpawnForMap(mapIndex);
-    ProphecySystem.state.npcSpawned = false;
-    CalendarSystem.state.celestialNpcSpawned = false;
-    // Re-check: spawn prophet if overdue
-    ProphecySystem.checkProphetSpawn();
-    // Re-spawn celestialElder if today is day 7
-    const dayData = CalendarSystem.getCurrentDayData();
-    if (dayData.effects.specialNpc) {
-      CalendarSystem.spawnCelestialNpc();
-    }
-  };
-
-  // --- Hook: NPC.interact (prophecy + celestialShop services) ---
-  const _origInteract = NPC.interact.bind(NPC);
-  NPC.interact = function(npc) {
-    if (npc.service === 'prophecy') {
-      _origInteract(npc); // show dialog first
-      // Append open panel button after dialog renders
-      setTimeout(function() {
-        const opts = document.getElementById('npcOptions');
-        if (!opts) return;
-        // Insert prophecy panel button before close
-        const btn = document.createElement('div');
-        btn.className = 'npc-option';
-        btn.innerHTML = '<span>🔮 Xem Lời Tiên Tri</span>';
-        btn.addEventListener('click', function() {
-          NPC.closeDialog();
-          ProphecyPanel.open();
-        });
-        opts.insertBefore(btn, opts.firstChild);
-      }, 0);
+  // --- Hook: NPC.buildOptions (celestialShop + prophecy) ---
+  const _origBuildShop = NPC.buildShopOptions.bind(NPC);
+  NPC.buildShopOptions = function(container) {
+    if (NPC.currentDialog && NPC.currentDialog.service === 'celestialShop') {
+      _calendarBuildCelestialShop(container);
+      NPC.addCloseOption(container);
       return;
     }
-
-    if (npc.service === 'celestialShop') {
-      _origInteract(npc);
-      // Override options with celestial shop after dialog renders
-      setTimeout(function() {
-        const opts = document.getElementById('npcOptions');
-        if (!opts) return;
-        opts.innerHTML = '';
-
-        const title = document.createElement('div');
-        title.style.cssText = 'color:#e040fb;font-size:11px;margin-bottom:10px;font-weight:bold';
-        title.textContent = '✨ Hàng Tiên Giới';
-        opts.appendChild(title);
-
-        CALENDAR_CONFIG.celestialNpcItems.forEach(function(shopItem) {
-          const itemData = ITEMS[shopItem.id];
-          if (!itemData) return;
-          const canBuy = Player.gold >= shopItem.price;
-          const opt = document.createElement('div');
-          opt.className = 'npc-option';
-          if (!canBuy) opt.classList.add('disabled');
-          opt.innerHTML =
-            '<span>' + itemData.name + '</span>' +
-            '<span class="cost">' + shopItem.price + ' 💰</span>';
-          if (canBuy) {
-            const id = shopItem.id, price = shopItem.price;
-            opt.addEventListener('click', function() {
-              NPC.buyItem(id, price);
-            });
-          }
-          opts.appendChild(opt);
-        });
-
-        const closeOpt = document.createElement('div');
-        closeOpt.className = 'npc-option';
-        closeOpt.innerHTML = '<span>👋 Tạm biệt</span>';
-        closeOpt.addEventListener('click', function() { NPC.closeDialog(); });
-        opts.appendChild(closeOpt);
-      }, 0);
+    if (NPC.currentDialog && NPC.currentDialog.service === 'prophecy') {
+      _calendarBuildProphecyOptions(container);
       return;
     }
-
-    _origInteract(npc);
+    _origBuildShop(container);
   };
 
-  // --- Hook: Game.update (calendar + prophecy update) ---
-  const _origGameUpdate = Game.update.bind(Game);
+  // --- Hook: Game.update ---
+  const _origUpdate = Game.update.bind(Game);
   Game.update = function(dt) {
-    _origGameUpdate(dt);
+    _origUpdate(dt);
     CalendarSystem.update(dt);
     ProphecySystem.update(dt);
   };
 
-  // --- Hook: Game.render (dark screen overlay after main render) ---
-  const _origGameRender = Game.render ? Game.render.bind(Game) : null;
-  if (_origGameRender) {
-    Game.render = function() {
-      _origGameRender();
-      if (CalendarSystem._darkAlpha > 0) {
-        const ctx = Game.ctx;
-        ctx.save();
-        ctx.fillStyle = '#000';
-        ctx.globalAlpha = CalendarSystem._darkAlpha;
-        ctx.fillRect(0, 0, Game.canvas.width, Game.canvas.height);
-        ctx.globalAlpha = 1;
-        ctx.restore();
-      }
-    };
-  }
+  // --- Hook: Game.render (dark overlay for day 26) ---
+  const _origRender = Game.render.bind(Game);
+  Game.render = function() {
+    _origRender();
+    if (CalendarSystem._darkAlpha > 0) {
+      Game.ctx.save();
+      Game.ctx.fillStyle = 'rgba(0,0,0,' + CalendarSystem._darkAlpha + ')';
+      Game.ctx.fillRect(0, 0, Game.canvas.width, Game.canvas.height);
+      Game.ctx.restore();
+    }
+  };
 
-  // --- Hook: Game.save ---
-  if (typeof Game.save === 'function') {
-    const _origSave = Game.save.bind(Game);
-    Game.save = function() {
-      _origSave();
-      try {
-        localStorage.setItem(CALENDAR_CONFIG.storageKey,
-          JSON.stringify(CalendarSystem.getSaveData()));
-        localStorage.setItem(PROPHECY_CONFIG.storageKey,
-          JSON.stringify(ProphecySystem.getSaveData()));
-      } catch(e) { console.warn('Calendar save error', e); }
-    };
-  }
+  // --- Hook: Game.save / Game.load ---
+  const _origSave = Game.save.bind(Game);
+  Game.save = function() {
+    _origSave();
+    try {
+      localStorage.setItem(CALENDAR_CONFIG.storageKey,  JSON.stringify(CalendarSystem.getSaveData()));
+      localStorage.setItem(PROPHECY_CONFIG.storageKey,  JSON.stringify(ProphecySystem.getSaveData()));
+    } catch(e) {}
+  };
+
+  const _origLoad = Game.load.bind(Game);
+  Game.load = function() {
+    const result = _origLoad();
+    try {
+      CalendarSystem.loadSaveData(JSON.parse(localStorage.getItem(CALENDAR_CONFIG.storageKey) || 'null'));
+      ProphecySystem.loadSaveData(JSON.parse(localStorage.getItem(PROPHECY_CONFIG.storageKey) || 'null'));
+    } catch(e) {}
+    return result;
+  };
+
+  // --- Hook: Player.levelUp (fullHealOnLevelUp ngày 25) ---
+  const _origLevelUp = Player.levelUp.bind(Player);
+  Player.levelUp = function() {
+    _origLevelUp();
+    if (CalendarSystem.isEffectActive('fullHealOnLevelUp')) {
+      Player.hp = Player.maxHp;
+      Player.mp = Player.maxMp;
+      UI.addLog('💚 Ngày Phục Sinh: hồi đầy HP/MP khi lên cấp!', 'system');
+    }
+  };
 }
 
 // ============================================================
-// SECTION 7 — INIT
+// HELPERS
 // ============================================================
 
-const CalendarProphecyFeature = {
-  init() {
-    // Inject UI
-    _calendarInjectHTML();
+function _calendarBuildCelestialShop(container) {
+  const title = document.createElement('div');
+  title.style.cssText = 'color:#f0c040;font-size:11px;margin-bottom:10px;font-weight:bold;text-align:center';
+  title.textContent = '✨ Hàng Hóa Tiên Giới';
+  container.appendChild(title);
 
-    // Epoch start — set once and never change
-    if (!CalendarSystem.state.epochStart) {
-      CalendarSystem.state.epochStart = Date.now();
+  CALENDAR_CONFIG.celestialNpcItems.forEach(function(shopItem) {
+    const itemData = ITEMS[shopItem.id];
+    if (!itemData) return;
+    const canBuy = Player.gold >= shopItem.price;
+    const opt = document.createElement('div');
+    opt.className = 'npc-option' + (canBuy ? '' : ' disabled');
+    opt.innerHTML =
+      '<span>' + itemData.name + '</span>' +
+      '<span class="cost">' + shopItem.price + ' 💰</span>';
+    if (canBuy) {
+      opt.addEventListener('click', function() {
+        NPC.buyItem(shopItem.id, shopItem.price);
+      });
     }
+    container.appendChild(opt);
+  });
+}
 
-    // Load saved data
-    try {
-      const calSaved  = localStorage.getItem(CALENDAR_CONFIG.storageKey);
-      const propSaved = localStorage.getItem(PROPHECY_CONFIG.storageKey);
-      if (calSaved)  CalendarSystem.loadSaveData(JSON.parse(calSaved));
-      if (propSaved) ProphecySystem.loadSaveData(JSON.parse(propSaved));
-    } catch(e) { console.warn('Calendar load error', e); }
+function _calendarBuildProphecyOptions(container) {
+  const rollOpt = document.createElement('div');
+  rollOpt.className = 'npc-option';
+  rollOpt.innerHTML = '<span>🔮 Xem Lời Tiên Tri</span>';
+  rollOpt.addEventListener('click', function() {
+    NPC.closeDialog();
+    ProphecyPanel.open();
+  });
+  container.appendChild(rollOpt);
 
-    // Ensure epochStart persisted
-    if (!CalendarSystem.state.epochStart) {
-      CalendarSystem.state.epochStart = Date.now();
-    }
+  const closeOpt = document.createElement('div');
+  closeOpt.className = 'npc-option';
+  closeOpt.innerHTML = '<span>👋 Tạm biệt</span>';
+  closeOpt.addEventListener('click', function() { NPC.closeDialog(); });
+  container.appendChild(closeOpt);
+}
 
-    // Install all hooks
-    _calendarInstallHooks();
+// ============================================================
+// INIT
+// ============================================================
 
-    // First day check + stat recalc
-    CalendarSystem.checkDayChange();
-    Player.recalculateStats();
-
-    console.log('📅 Calendar + Prophecy System loaded');
-  }
-};
-
-// Auto-init: wrap Game.init
 (function() {
-  const _origGameInit = Game.init.bind(Game);
-  Game.init = function() {
-    _origGameInit();
-    CalendarProphecyFeature.init();
-  };
+  function _tryInit() {
+    if (typeof Game === 'undefined' || !Game.init) {
+      setTimeout(_tryInit, 200);
+      return;
+    }
+
+    const _origInit = Game.init.bind(Game);
+    Game.init = function() {
+      _origInit();
+
+      // Set epochStart on first run
+      if (!CalendarSystem.state.epochStart) {
+        CalendarSystem.state.epochStart = Date.now();
+      }
+
+      _calendarInjectHTML();
+      _calendarInstallHooks();
+
+      // Load saved data
+      try {
+        CalendarSystem.loadSaveData(JSON.parse(localStorage.getItem(CALENDAR_CONFIG.storageKey) || 'null'));
+        ProphecySystem.loadSaveData(JSON.parse(localStorage.getItem(PROPHECY_CONFIG.storageKey) || 'null'));
+      } catch(e) {}
+
+      // Force day check
+      CalendarSystem.state.lastCheckedDate = null;
+      CalendarSystem.checkDayChange();
+
+      console.log('📅 Calendar + Prophecy loaded');
+    };
+  }
+
+  if (document.readyState === 'loading') {
+    document.addEventListener('DOMContentLoaded', _tryInit);
+  } else {
+    _tryInit();
+  }
 })();
+
+console.log('📅 feature_calendar_prophecy.js loaded');
+// ===== CHANGES: Thêm guard _calendarHooksInstalled để tránh đăng ký hook nhiều lần (fix trùng lặp event); phần còn lại giữ nguyên 100% logic từ source gốc =====

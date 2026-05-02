@@ -1,3 +1,4 @@
+// ===== FILE: js/feature_adaptive_boss.js =====
 // ==================== FEATURE: ADAPTIVE BOSS ====================
 // feature_adaptive_boss.js — Boss học từ lịch sử combat
 //
@@ -71,9 +72,6 @@ const AdaptiveBossSystem = {
       shieldDuration: 3000,
       _active: false,
       _timer: 0,
-      apply(boss, dt) {
-        // Shield logic handled in spawnBoss hook
-      },
       onSpawn(boss) {
         this._active = true;
         this._timer  = this.shieldDuration;
@@ -281,7 +279,6 @@ const AdaptiveBossSystem = {
     this._hookEnemiesDamage();
     this._hookPlayerMovement();
 
-    console.log('🧠 AdaptiveBossSystem initialized');
   },
 
   // ─── Hook: _onBossKilled ─────────────────────────────────────
@@ -396,4 +393,4 @@ const AdaptiveBossSystem = {
   }
 })();
 
-console.log('🧠 feature_adaptive_boss.js loaded');
+// ===== CHANGES: Xóa 2 console.log debug. Xóa method apply() rỗng trên mutation phase_shield — method này không bao giờ được gọi vì tickMutation() có early return cho phase_shield và chỉ gọi tick(), không gọi apply(). =====

@@ -1,3 +1,4 @@
+// ===== FILE: js/feature_dynamic_world.js =====
 // ==================== FEATURE: DYNAMIC WORLD ====================
 // Sections: RandomModifiers | LuckSystem | AutoExpedition | UI & Init
 // Load sau: feature_dungeon.js (optional guard), npc.js, game.js
@@ -1128,7 +1129,6 @@ var DynamicWorldFeature = {
     ExpeditionSystem.loadData();
     ExpeditionHUD.updateBadge();
 
-    console.log('🎲 Dynamic World loaded (Modifiers + Luck + Expedition)');
   }
 };
 
@@ -1142,3 +1142,4 @@ var DynamicWorldFeature = {
     DynamicWorldFeature.init();
   };
 })();
+// ===== CHANGES: Xóa console.log debug trong DynamicWorldFeature.init. =====

@@ -1,3 +1,4 @@
+// ===== FILE: js/feature_world_lore.js =====
 // ==================== WORLD LORE SYSTEM ====================
 // feature_world_lore.js — WorldRuins + VoidRift + ParallelWorld
 // Load sau: game.js
@@ -1247,7 +1248,6 @@ const WorldLoreFeature = {
       _origNPCInteract(npc);
     };
 
-    console.log('🗿 World Lore System loaded (Ruins + Void + Parallel)');
   }
 };
 
@@ -1263,4 +1263,4 @@ const WorldLoreFeature = {
   };
 })();
 
-console.log('🗿 feature_world_lore.js parsed — waiting for Game.init()');
+// ===== CHANGES: Xóa 2 console.log debug (trong init và cuối file). =====

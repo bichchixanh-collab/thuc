@@ -1,7 +1,6 @@
+// ===== FILE: feature_character_build.js =====
 // ==================== CHARACTER BUILD SYSTEM ====================
-// feature_character_build.js
 // Requires: config.js, player.js, enemies.js, inventory.js, ui.js, game.js
-// Add to index.html: <script src="js/feature_character_build.js"></script>
 
 // ============================================================
 // SECTION 1 — DATA & CONFIG
@@ -168,7 +167,6 @@ const CultivationMethodSystem = {
         return false;
       }
       Inventory.remove('methodPill', 1);
-      // Reset level
       Player.level = 1;
       Player.exp = 0;
       Player.maxExp = 100;
@@ -185,7 +183,6 @@ const CultivationMethodSystem = {
     this.state.chosen = true;
     Player.recalculateStats();
 
-    // Re-render char panel if open
     if (UI.activePanel === 'character') UI.renderCharacter();
     return true;
   },
@@ -198,7 +195,6 @@ const CultivationMethodSystem = {
     const realm = REALMS[player.realm];
     const realmStatMul = player._faterealmStatMul || 1.0;
 
-    // Re-calculate stats based on method.statPerLevel (overrides default formula)
     player.atk = player.baseAtk
       + (lvl - 1) * method.statPerLevel.atk
       + Math.floor(realm.atkBonus * (method.realmAtkMul || 1.0) * realmStatMul)
@@ -224,7 +220,6 @@ const CultivationMethodSystem = {
       + player.equipCritRate
       + (player._petCritRate || 0);
 
-    // Method-specific flags
     if (method.skillDmgMul)        player._methodSkillDmgMul  = method.skillDmgMul;
     else                           delete player._methodSkillDmgMul;
 
@@ -257,7 +252,7 @@ const CultivationMethodSystem = {
 
 const FateSystem = {
   state: {
-    fates: [],             // active fate objects {id, name, desc, rarity}
+    fates: [],
     rolled: false,
     _undyingLastUsed: 0,
     _critChainActive: false
@@ -304,15 +299,13 @@ const FateSystem = {
   },
 
   clearFateFlags() {
-    // Remove all _fate* properties from Player
     Object.keys(Player).filter(k => k.startsWith('_fate')).forEach(k => {
       delete Player[k];
     });
   },
 
-  // applyFates: chỉ gọi sau khi applyToStats đã tính xong stat gốc.
-  // KHÔNG gọi clearFateFlags ở đây vì applyToStats đã được chạy trước và
-  // các fate như longevity/ironBody mutate trực tiếp lên stat đã tính.
+  // applyFates: gọi sau applyToStats đã tính xong stat gốc.
+  // Fate như longevity/ironBody mutate trực tiếp lên stat đã tính.
   applyFates() {
     this.clearFateFlags();
     this.state.fates.forEach(fate => {
@@ -411,12 +404,10 @@ const FateSystem = {
 // ============================================================
 
 const CharacterBuildUI = {
-  // Inject the Method + Fate section into charStats div
   injectBuildSection() {
     const stats = document.getElementById('charStats');
     if (!stats) return;
 
-    // Remove existing build section if any
     const existing = document.getElementById('buildSection');
     if (existing) existing.remove();
 
@@ -426,7 +417,6 @@ const CharacterBuildUI = {
     section.innerHTML = this._methodHTML() + this._fateHTML();
     stats.appendChild(section);
 
-    // Bind events
     this._bindEvents(section);
   },
 
@@ -438,7 +428,6 @@ const CharacterBuildUI = {
     let html = `<div style="color:#f0c040;font-size:12px;margin-bottom:10px;font-weight:bold">📖 Tâm Pháp Tu Luyện</div>`;
 
     if (!ms.chosen) {
-      // Show 3 choice buttons
       html += `<div style="display:flex;gap:6px;flex-wrap:wrap;margin-bottom:8px">`;
       for (const [id, m] of Object.entries(methods)) {
         html += `
@@ -529,25 +518,17 @@ const CharacterBuildUI = {
   },
 
   _bindEvents(section) {
-    // Method choice buttons
     section.querySelectorAll('.build-method-btn').forEach(btn => {
       btn.onclick = () => {
-        const methodId = btn.dataset.method;
-        if (CultivationMethodSystem.choose(methodId)) {
+        if (CultivationMethodSystem.choose(btn.dataset.method)) {
           this.injectBuildSection();
         }
       };
     });
 
-    // Change method (show picker)
     const changeBtn = section.querySelector('.build-change-method-btn');
-    if (changeBtn) {
-      changeBtn.onclick = () => {
-        this._showMethodPicker();
-      };
-    }
+    if (changeBtn) changeBtn.onclick = () => this._showMethodPicker();
 
-    // Fate roll
     const rollBtn = section.querySelector('.build-fate-roll-btn');
     if (rollBtn) {
       rollBtn.onclick = () => {
@@ -558,13 +539,10 @@ const CharacterBuildUI = {
       };
     }
 
-    // Fate reroll
     const rerollBtn = section.querySelector('.build-fate-reroll-btn');
     if (rerollBtn) {
       rerollBtn.onclick = () => {
-        if (FateSystem.reroll()) {
-          this.injectBuildSection();
-        }
+        if (FateSystem.reroll()) this.injectBuildSection();
       };
     }
   },
@@ -584,7 +562,7 @@ const CharacterBuildUI = {
     const methods = CULTIVATION_METHOD_CONFIG.methods;
     let buttonsHTML = '';
     for (const [id, m] of Object.entries(methods)) {
-      if (id === CultivationMethodSystem.state.method) continue; // skip current
+      if (id === CultivationMethodSystem.state.method) continue;
       buttonsHTML += `
         <button class="method-pick-opt" data-method="${id}"
           style="padding:12px;border:1px solid ${m.color};background:rgba(0,0,0,0.5);
@@ -620,7 +598,6 @@ const CharacterBuildUI = {
       btn.onclick = () => {
         const methodId = btn.dataset.method;
         const m = CULTIVATION_METHOD_CONFIG.methods[methodId];
-        // Bước 2: Hiện confirm dialog trước khi thực sự đổi
         this._showMethodConfirm(modal, methodId, m);
       };
     });
@@ -680,7 +657,6 @@ const CharacterBuildUI = {
         this.injectBuildSection();
       }
     };
-
     document.getElementById('methodConfirmNo').onclick = () => confirm.remove();
     confirm.onclick = (e) => { if (e.target === confirm) confirm.remove(); };
   }
@@ -695,7 +671,6 @@ function _injectBuildStyles() {
   const style = document.createElement('style');
   style.id = 'buildSystemStyles';
   style.textContent = `
-    /* First-time fate modal */
     #fateFirstModal {
       position: fixed;
       inset: 0;
@@ -777,14 +752,11 @@ function _injectBuildStyles() {
     .fate-card-badge { font-size: 9px; }
     .fate-card-name  { font-size: 13px; font-weight: bold; }
     .fate-card-desc  { font-size: 10px; color: #aaa; }
-
-    /* Method buttons hover */
     .build-method-btn:hover {
       filter: brightness(1.2);
       transform: translateY(-1px);
       transition: all 0.15s;
     }
-
     @keyframes buildFadeIn {
       from { opacity: 0; transform: scale(0.95); }
       to   { opacity: 1; transform: scale(1);    }
@@ -801,11 +773,21 @@ function _injectBuildStyles() {
 // HOOKS — wrap existing functions
 // ============================================================
 
+// Helper: áp dụng CD-reduction sau khi skill được dùng thành công
+function _applySkillCdReductions(skill, idx) {
+  if (!skill) return;
+  if (this._methodCdReduction && skill.cd > 0) {
+    skill.cd = Math.floor(skill.cd * (1 - this._methodCdReduction));
+  }
+  if (idx === 0 && this._fateBasicCdMul && skill.cd > 0) {
+    skill.cd = Math.floor(skill.cd * this._fateBasicCdMul);
+  }
+}
+
 function _installHooks() {
 
   // ── 1. recalculateStats ──────────────────────────────────
   // Thứ tự: _orig (equip/pet) → applyToStats (method override) → applyFates (fate mutate on top)
-  // applyFates chỉ chạy nếu đã rolled, tránh clear flags khi chưa có fate nào
   const _origRecalc = Player.recalculateStats.bind(Player);
   Player.recalculateStats = function () {
     _origRecalc();
@@ -823,10 +805,8 @@ function _installHooks() {
     const actualDamage = Math.max(1, amount - this.def);
     const hpAfterDmg = this.hp - actualDamage;
 
-    // Undying check
     if (FateSystem.hasFate('undying') && hpAfterDmg <= 0 && this.hp > 0) {
       const elapsed = GameState.time - FateSystem.state._undyingLastUsed;
-      // immortalBody fate: halve cooldown
       const cdRequired = FateSystem.hasFate('immortalBody') ? (5 * 60 * 1000 / 2) : (5 * 60 * 1000);
       if (elapsed >= cdRequired) {
         this.hp = 1;
@@ -840,7 +820,6 @@ function _installHooks() {
       }
     }
 
-    // Normal damage flow
     const dmgReduction = this.hasOwnProperty('_fateDmgReduce') ? this._fateDmgReduce : 1.0;
     const reducedDamage = Math.max(1, Math.floor(actualDamage * dmgReduction));
     this.hp -= reducedDamage;
@@ -874,55 +853,32 @@ function _installHooks() {
   // ── 5. useSkill — magic method cd reduction + fateBasicCdMul ─
   const _origUseSkill = Player.useSkill.bind(Player);
   Player.useSkill = function (idx) {
-    // Apply MP cost reduction (mpMaster fate)
     if (this._fateMpCostMul && this.skills && this.skills[idx]) {
       const skill = this.skills[idx];
       const origMp = skill.mp;
       skill.mp = Math.floor(origMp * this._fateMpCostMul);
       const result = _origUseSkill.call(this, idx);
-      skill.mp = origMp;  // restore
-      if (result) {
-        // cd reduction for magic method
-        if (this._methodCdReduction && skill.cd > 0) {
-          skill.cd = Math.floor(skill.cd * (1 - this._methodCdReduction));
-        }
-        // swiftSword fate for skill 0
-        if (idx === 0 && this._fateBasicCdMul && skill.cd > 0) {
-          skill.cd = Math.floor(skill.cd * this._fateBasicCdMul);
-        }
-      }
+      skill.mp = origMp;
+      if (result) _applySkillCdReductions.call(this, skill, idx);
       return result;
     }
 
     const result = _origUseSkill.call(this, idx);
-    if (result) {
-      const skill = this.skills[idx];
-      if (skill) {
-        if (this._methodCdReduction && skill.cd > 0) {
-          skill.cd = Math.floor(skill.cd * (1 - this._methodCdReduction));
-        }
-        if (idx === 0 && this._fateBasicCdMul && skill.cd > 0) {
-          skill.cd = Math.floor(skill.cd * this._fateBasicCdMul);
-        }
-      }
-    }
+    if (result) _applySkillCdReductions.call(this, this.skills && this.skills[idx], idx);
     return result;
   };
 
   // ── 6. Enemies.kill — fortune / genius gold + methodPill/fateScroll drops ─
   const _origKill = Enemies.kill.bind(Enemies);
   Enemies.kill = function (enemy) {
-    // Gold multiplier
     if (Player._fateGoldMul) {
       enemy.gold = Math.floor(enemy.gold * Player._fateGoldMul);
     }
 
-    // Add methodPill / fateScroll to drops
     const isBoss = enemy.boss || false;
-    const pillChance  = isBoss ? 0.15 : 0.05;
+    const pillChance   = isBoss ? 0.15 : 0.05;
     const scrollChance = isBoss ? 0.10 : 0.03;
 
-    // legendary drop multiplier
     if (Player._fateLegendaryMul) {
       enemy.drops = enemy.drops.map(d => {
         const item = ITEMS[d.id];
@@ -935,23 +891,17 @@ function _installHooks() {
 
     _origKill.call(this, enemy);
 
-    // Extra drops for build items
     if (Utils.chance(pillChance) && ITEMS['methodPill']) {
-      if (Inventory.add('methodPill', 1)) {
-        UI.addLog('📦 Nhận Tâm Pháp Hoán Đổi Đan!', 'item');
-      }
+      if (Inventory.add('methodPill', 1)) UI.addLog('📦 Nhận Tâm Pháp Hoán Đổi Đan!', 'item');
     }
     if (Utils.chance(scrollChance) && ITEMS['fateScroll']) {
-      if (Inventory.add('fateScroll', 1)) {
-        UI.addLog('📦 Nhận Vận Mệnh Thư!', 'item');
-      }
+      if (Inventory.add('fateScroll', 1)) UI.addLog('📦 Nhận Vận Mệnh Thư!', 'item');
     }
   };
 
   // ── 7. Enemies.damage — critChain fate ──────────────────
   const _origDamage = Enemies.damage.bind(Enemies);
   Enemies.damage = function (enemy, amount, isCrit = false, color = '#ffffff') {
-    // critChain fate
     if (!isCrit && Player._forceCrit) {
       isCrit = true;
       amount = Math.floor(amount * Player.critDmg);
@@ -979,7 +929,6 @@ function _installHooks() {
     if (!itemData) return false;
 
     if (itemData.effect && itemData.effect.changeMethod) {
-      // Handled directly via CharacterBuildUI button; just notify
       UI.addLog('💡 Dùng qua panel Nhân Vật → Tâm Pháp để đổi!', 'system');
       return false;
     }
@@ -1022,8 +971,6 @@ function _installHooks() {
         const d = JSON.parse(raw);
         CultivationMethodSystem.loadSaveData(d.method);
         FateSystem.loadSaveData(d.fate);
-        // Sau khi load state xong, apply lại để Player có đúng flags
-        // recalculateStats sẽ tự gọi applyFates nếu rolled=true
         Player.recalculateStats();
       }
     } catch (e) {
@@ -1033,23 +980,18 @@ function _installHooks() {
   };
 
   // ── 11. Natural HP regen — hpRegenMul (body method + recovery fate) ─
-  // Patch Player.update to multiply regen
   const _origUpdate = Player.update.bind(Player);
   Player.update = function (dt, inputX, inputY) {
-    // We do a minimal override: call orig, then boost HP if over-regenerated
-    // Since regen happens inside _origUpdate, we track HP before and after
     const hpBefore = this.hp;
     _origUpdate.call(this, dt, inputX, inputY);
     const regenDone = this.hp - hpBefore;
     if (regenDone > 0) {
-      const methodMul  = this._methodHpRegenMul  || 1.0;
-      const fateMul    = this._fateHpRegenMul    || 1.0;
-      const totalMul   = methodMul * fateMul;
+      const methodMul = this._methodHpRegenMul || 1.0;
+      const fateMul   = this._fateHpRegenMul   || 1.0;
+      const totalMul  = methodMul * fateMul;
       if (totalMul > 1.0) {
         const extra = Math.floor(regenDone * (totalMul - 1));
-        if (extra > 0) {
-          this.hp = Math.min(this.maxHp, this.hp + extra);
-        }
+        if (extra > 0) this.hp = Math.min(this.maxHp, this.hp + extra);
       }
     }
   };
@@ -1061,7 +1003,6 @@ function _installHooks() {
 
 const CharacterBuildFeature = {
   init() {
-    // Register items trước khi bất kỳ thứ gì dùng đến chúng
     if (typeof ITEMS !== 'undefined') {
       ITEMS.methodPill = {
         name: 'Tâm Pháp Hoán Đổi Đan', type: 'consumable', rarity: 'epic',
@@ -1077,15 +1018,8 @@ const CharacterBuildFeature = {
 
     _injectBuildStyles();
     _installHooks();
-    // Không gọi recalculateStats() ở đây —
-    // Game.load() đã được wrap và tự gọi Player.recalculateStats() sau khi load build data.
-    // Nếu không có save (lần đầu), state.rolled = false → show modal bên dưới.
 
-    // Hiện first-time fate modal nếu chưa từng roll
-    // Dùng setTimeout để đảm bảo loading screen đã hiện và game đã start
     if (!FateSystem.state.rolled) {
-      // showLoading → click → start() → loop bắt đầu
-      // Ta hook vào Game.start thay vì setTimeout cố định
       const _origStart = Game.start.bind(Game);
       Game.start = function () {
         _origStart.call(this);
@@ -1099,14 +1033,18 @@ const CharacterBuildFeature = {
   }
 };
 
-// Hook vào Game.init
 // QUAN TRỌNG: CharacterBuildFeature.init() phải chạy TRƯỚC _origGameInit
 // vì _origGameInit gọi Game.load() — và Game.load hook cần đã được cài sẵn
 const _origGameInit = Game.init.bind(Game);
 Game.init = function () {
-  CharacterBuildFeature.init();   // cài hooks + items + check rolled
-  _origGameInit.call(this);       // Player.init → Game.load → ... → showLoading
+  CharacterBuildFeature.init();
+  _origGameInit.call(this);
 };
 
-console.log('📖 Character Build System loaded (Method + Fate)');
-// <script src="js/feature_character_build.js"></script>
+// ===== CHANGES: =====
+// 1. Xóa console.log trùng lặp ở cuối file (đã có bên trong CharacterBuildFeature.init)
+// 2. Trích xuất helper _applySkillCdReductions() để loại bỏ đoạn CD-reduction
+//    bị nhân đôi trong cả 2 nhánh của Player.useSkill hook
+// 3. Xóa comment sai "KHÔNG gọi clearFateFlags ở đây" trong applyFates()
+//    (thực tế hàm ngay lập tức gọi clearFateFlags)
+// 4. Đơn giản hóa _bindEvents: bỏ biến trung gian methodId thừa

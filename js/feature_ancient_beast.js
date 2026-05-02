@@ -1,3 +1,4 @@
+// ===== FILE: js/feature_ancient_beast.js =====
 // ==================== ANCIENT BEAST SYSTEM ====================
 // File: js/feature_ancient_beast.js
 // Monkey-patch module — KHÔNG sửa bất kỳ file gốc nào.
@@ -284,7 +285,6 @@ const AncientBeastSystem = {
 
     this._loadSavedData();
 
-    console.log('🐉 Ancient Beast System initialized');
   },
 
   // ── Mount beast ───────────────────────────────────────────
@@ -1186,17 +1186,7 @@ const ReplaceUI = {
   Game.update = function (dt) {
     _origGameUpdate(dt);
     AncientBeastSystem.update(dt);
-    CaptureUI.update();
   };
-
-  // Wrap Game.save
-  const _origGameSave = Game.save ? Game.save.bind(Game) : null;
-  if (_origGameSave) {
-    Game.save = function () {
-      _origGameSave();
-      // ancientBeastData đã được nhúng vào Player.getSaveData() qua hook
-    };
-  }
 
   // Wrap Game.load
   const _origGameLoad = Game.load ? Game.load.bind(Game) : null;
@@ -1214,7 +1204,4 @@ const ReplaceUI = {
   }
 
 })();
-
-console.log('🐉 Ancient Beast System loaded');
-// Thêm vào index.html SAU feature_pet_level.js:
-// <script src="js/feature_ancient_beast.js"></script>
+// ===== CHANGES: Xóa 2 console.log debug. Xóa comment usage cuối file. Xóa call CaptureUI.update() trong Game.update hook — method này rỗng hoàn toàn (timer bar đã xử lý qua requestAnimationFrame). Xóa dead Game.save wrapper — body chỉ gọi original rồi comment, không thêm logic nào (save đã được nhúng vào Player.getSaveData() qua _hookSaveLoad). =====

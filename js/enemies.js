@@ -1,3 +1,4 @@
+// ===== FILE: js/enemies.js =====
 // ==================== ENEMY SYSTEM ====================
 const Enemies = {
   list: [],
@@ -408,10 +409,9 @@ const Enemies = {
       const dist = Utils.dist(x, y, enemy.x, enemy.y);
       if (dist <= enemy.size * 2 + radius) {
         return enemy;
-		      }
+      }
     }
     return null;
   }
 };
-
-console.log('👹 Enemies loaded');
+// ===== CHANGES: Xóa console.log debug cuối file. Sửa indentation lỗi trong getAt() (thừa tab ở closing brace). Không có enemy type dead — tất cả 16 type đều được spawn qua map data hoặc boss summon skill. =====

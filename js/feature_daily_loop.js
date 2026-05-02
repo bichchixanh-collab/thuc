@@ -1,7 +1,7 @@
+// ===== FILE: feature_daily_loop.js =====
 // ==================== FEATURE: DAILY LOOP SYSTEM ====================
 // Gồm: DivineMissionSystem + OfflineProgressSystem + UI
 // Load sau: game.js, inventory.js, enemies.js, player.js
-// Thêm vào index.html: <script src="js/feature_daily_loop.js"></script>
 
 // ============================================================
 // SECTION 1 — DATA & CONFIG
@@ -24,63 +24,34 @@ const DAILY_CONFIG = {
 
   missionPool: {
     easy: [
-      { id:'kill_any_10',  type:'kill',   target:'any',    count:10,
-        desc:'Tiêu diệt 10 yêu thú',           reward:{ exp:100, gold:80 } },
-      { id:'use_potion_3', type:'use',    target:'potion', count:3,
-        desc:'Sử dụng 3 đan dược',              reward:{ exp:80,  gold:60 } },
-      { id:'move_5000',    type:'move',   target:null,     count:5000,
-        desc:'Di chuyển 5000px',                reward:{ exp:90,  gold:70 } },
-      { id:'kill_wolf_5',  type:'kill',   target:'wolf',   count:5,
-        desc:'Tiêu diệt 5 Sói Xám',            reward:{ exp:100, gold:80 } },
-      { id:'regen_mp',     type:'regen',  target:'mp',     count:100,
-        desc:'Hồi phục 100 MP',                 reward:{ exp:80,  gold:60 } },
-      { id:'kill_boar_5',  type:'kill',   target:'boar',   count:5,
-        desc:'Tiêu diệt 5 Heo Rừng',           reward:{ exp:100, gold:80 } }
+      { id:'kill_any_10',  type:'kill',   target:'any',    count:10,   desc:'Tiêu diệt 10 yêu thú',           reward:{ exp:100, gold:80 } },
+      { id:'use_potion_3', type:'use',    target:'potion', count:3,    desc:'Sử dụng 3 đan dược',              reward:{ exp:80,  gold:60 } },
+      { id:'move_5000',    type:'move',   target:null,     count:5000, desc:'Di chuyển 5000px',                reward:{ exp:90,  gold:70 } },
+      { id:'kill_wolf_5',  type:'kill',   target:'wolf',   count:5,    desc:'Tiêu diệt 5 Sói Xám',            reward:{ exp:100, gold:80 } },
+      { id:'regen_mp',     type:'regen',  target:'mp',     count:100,  desc:'Hồi phục 100 MP',                 reward:{ exp:80,  gold:60 } },
+      { id:'kill_boar_5',  type:'kill',   target:'boar',   count:5,    desc:'Tiêu diệt 5 Heo Rừng',           reward:{ exp:100, gold:80 } }
     ],
     normal: [
-      { id:'kill_boss_1',   type:'kill',   target:'boss',  count:1,
-        desc:'Tiêu diệt 1 boss bản đồ',
-        reward:{ exp:300, gold:200, item:'realmPill', itemCount:1 } },
-      { id:'craft_2',       type:'craft',  target:null,    count:2,
-        desc:'Luyện đan thành công 2 lần',
-        reward:{ exp:250, gold:180, item:'expPotion', itemCount:1 } },
-      { id:'enter_dungeon', type:'dungeon',target:null,    count:1,
-        desc:'Vào 1 Bí Cảnh',
-        reward:{ exp:280, gold:200, item:'realmPill', itemCount:1 } },
-      { id:'kill_any_30',   type:'kill',   target:'any',   count:30,
-        desc:'Tiêu diệt 30 yêu thú',
-        reward:{ exp:260, gold:190 } },
-      { id:'kill_ghost_10', type:'kill',   target:'ghost', count:10,
-        desc:'Tiêu diệt 10 U Linh',
-        reward:{ exp:270, gold:185, item:'spiritStone', itemCount:2 } }
+      { id:'kill_boss_1',   type:'kill',    target:'boss',  count:1, desc:'Tiêu diệt 1 boss bản đồ',       reward:{ exp:300, gold:200, item:'realmPill',  itemCount:1 } },
+      { id:'craft_2',       type:'craft',   target:null,    count:2, desc:'Luyện đan thành công 2 lần',     reward:{ exp:250, gold:180, item:'expPotion',  itemCount:1 } },
+      { id:'enter_dungeon', type:'dungeon', target:null,    count:1, desc:'Vào 1 Bí Cảnh',                  reward:{ exp:280, gold:200, item:'realmPill',  itemCount:1 } },
+      { id:'kill_any_30',   type:'kill',    target:'any',   count:30, desc:'Tiêu diệt 30 yêu thú',          reward:{ exp:260, gold:190 } },
+      { id:'kill_ghost_10', type:'kill',    target:'ghost', count:10, desc:'Tiêu diệt 10 U Linh',           reward:{ exp:270, gold:185, item:'spiritStone', itemCount:2 } }
     ],
     hard: [
-      { id:'boss_event_1',  type:'kill',   target:'bossEvent', count:1,
-        desc:'Tham chiến Boss Event',
-        reward:{ exp:800, gold:600, item:'dragonScale', itemCount:1 } },
-      { id:'combo_20',      type:'combo',  target:null,        count:20,
-        desc:'Đạt Combo x20 trong 1 trận',
-        reward:{ exp:700, gold:500, item:'realmPill', itemCount:2 } },
-      { id:'clear_epic',    type:'dungeon',target:'epic',      count:1,
-        desc:'Hoàn thành Bí Cảnh Sử Thi',
-        reward:{ exp:900, gold:700, item:'spiritStone', itemCount:3 } },
-      { id:'kill_demon_20', type:'kill',   target:'demon',     count:20,
-        desc:'Tiêu diệt 20 Yêu Ma',
-        reward:{ exp:750, gold:550, item:'demonCore', itemCount:3 } },
-      { id:'realm_exp_500', type:'realmExp',target:null,       count:500,
-        desc:'Tích lũy 500 Tu Vi',
-        reward:{ exp:800, gold:600, item:'expPotion', itemCount:2 } }
+      { id:'boss_event_1',  type:'kill',     target:'bossEvent', count:1,   desc:'Tham chiến Boss Event',            reward:{ exp:800, gold:600, item:'dragonScale', itemCount:1 } },
+      { id:'combo_20',      type:'combo',    target:null,        count:20,  desc:'Đạt Combo x20 trong 1 trận',       reward:{ exp:700, gold:500, item:'realmPill',   itemCount:2 } },
+      { id:'clear_epic',    type:'dungeon',  target:'epic',      count:1,   desc:'Hoàn thành Bí Cảnh Sử Thi',        reward:{ exp:900, gold:700, item:'spiritStone', itemCount:3 } },
+      { id:'kill_demon_20', type:'kill',     target:'demon',     count:20,  desc:'Tiêu diệt 20 Yêu Ma',             reward:{ exp:750, gold:550, item:'demonCore',   itemCount:3 } },
+      { id:'realm_exp_500', type:'realmExp', target:null,        count:500, desc:'Tích lũy 500 Tu Vi',               reward:{ exp:800, gold:600, item:'expPotion',   itemCount:2 } }
     ]
   },
 
   streakRewards: [
     { days:3,  reward:{ item:'realmPill',    count:3 } },
-    { days:7,  reward:{ item:'expPotion',    count:3,
-                        extraItem:'dragonScale',   extraCount:1 } },
-    { days:14, reward:{ item:'dragonScale',  count:2,
-                        extraItem:'celestialOrb',  extraCount:1 } },
-    { days:30, reward:{ item:'celestialOrb', count:3,
-                        extraItem:'celestialSword',extraCount:1 } }
+    { days:7,  reward:{ item:'expPotion',    count:3,  extraItem:'dragonScale',    extraCount:1 } },
+    { days:14, reward:{ item:'dragonScale',  count:2,  extraItem:'celestialOrb',   extraCount:1 } },
+    { days:30, reward:{ item:'celestialOrb', count:3,  extraItem:'celestialSword', extraCount:1 } }
   ]
 };
 
@@ -139,11 +110,10 @@ const DivineMissionSystem = {
     return d.getFullYear() + '-' + (d.getMonth() + 1) + '-' + d.getDate();
   },
 
+  // Simple deterministic hash for daily seed
   hashString(str) {
     let hash = 0;
-    for (let i = 0; i < str.length; i++) {
-      hash += str.charCodeAt(i);
-    }
+    for (let i = 0; i < str.length; i++) hash += str.charCodeAt(i);
     return hash;
   },
 
@@ -155,7 +125,6 @@ const DivineMissionSystem = {
     if (s.lastCompletedDate) {
       const yesterday = this.getYesterdayString();
       if (s.lastCompletedDate !== yesterday) {
-        // Miss 1 ngày trở lên
         if (s.protectorActive) {
           s.protectorActive = false;
           UI.addLog('🛡️ Hộ Mệnh Phù đã bảo vệ streak của bạn!', 'system');
@@ -164,10 +133,9 @@ const DivineMissionSystem = {
           s.streak = 0;
         }
       }
-      // Nếu lastCompletedDate === yesterday → streak giữ nguyên, tăng khi hôm nay complete
     }
 
-    s.today = today;
+    s.today    = today;
     s.missions = this.generateDailyMissions();
     this.resetTracking();
     UI.addLog('🌟 Nhiệm Vụ Thần Linh mới đã xuất hiện!', 'system');
@@ -177,10 +145,10 @@ const DivineMissionSystem = {
 
   generateDailyMissions() {
     const pool = DAILY_CONFIG.missionPool;
-    const h = this.hashString(this.state.today);
-    const easy   = pool.easy[h % pool.easy.length];
-    const normal = pool.normal[(h * 7) % pool.normal.length];
-    const hard   = pool.hard[(h * 13) % pool.hard.length];
+    const h    = this.hashString(this.state.today);
+    const easy   = pool.easy[h                % pool.easy.length];
+    const normal = pool.normal[(h * 7)        % pool.normal.length];
+    const hard   = pool.hard[(h * 13)         % pool.hard.length];
     return [
       { ...easy,   difficulty: 'easy',   progress: 0, completed: false, claimed: false },
       { ...normal, difficulty: 'normal', progress: 0, completed: false, claimed: false },
@@ -190,15 +158,15 @@ const DivineMissionSystem = {
 
   resetTracking() {
     const s = this.state;
-    s.killCount = {};
+    s.killCount           = {};
     s.sessionMoveDistance = 0;
-    s.sessionMpRegen = 0;
-    s.sessionRealmExp = 0;
-    s.comboMaxReached = 0;
-    s.bossEventKilled = false;
-    s.dungeonEntered = false;
-    s.dungeonEpicCleared = false;
-    s.craftCount = 0;
+    s.sessionMpRegen      = 0;
+    s.sessionRealmExp     = 0;
+    s.comboMaxReached     = 0;
+    s.bossEventKilled     = false;
+    s.dungeonEntered      = false;
+    s.dungeonEpicCleared  = false;
+    s.craftCount          = 0;
     this._lastPos = null;
   },
 
@@ -218,9 +186,7 @@ const DivineMissionSystem = {
     if (anyCompleted) {
       DivineMissionHUD.updateBadge();
       DivineMissionPanel.render();
-      if (this.state.missions.every(m => m.completed)) {
-        this.onAllCompleted();
-      }
+      if (this.state.missions.every(m => m.completed)) this.onAllCompleted();
     }
   },
 
@@ -233,8 +199,7 @@ const DivineMissionSystem = {
       if (s.streak === sr.days) {
         Inventory.add(sr.reward.item, sr.reward.count);
         if (sr.reward.extraItem) Inventory.add(sr.reward.extraItem, sr.reward.extraCount);
-        UI.showNotification('🔥 Streak ' + sr.days + ' ngày!',
-          sr.reward.item + ' x' + sr.reward.count);
+        UI.showNotification('🔥 Streak ' + sr.days + ' ngày!', sr.reward.item + ' x' + sr.reward.count);
         UI.addLog('🔥 Phần thưởng streak ' + sr.days + ' ngày!', 'realm');
         break;
       }
@@ -263,22 +228,16 @@ const DivineMissionSystem = {
     }
     Inventory.remove(DAILY_CONFIG.skipItemId, 1);
     hard.completed = true;
-    hard.progress = hard.count;
+    hard.progress  = hard.count;
     UI.addLog('⚡ Đã bỏ qua nhiệm vụ Khó!', 'system');
     DivineMissionHUD.updateBadge();
     DivineMissionPanel.render();
-    if (this.state.missions.every(m => m.completed)) {
-      this.onAllCompleted();
-    }
+    if (this.state.missions.every(m => m.completed)) this.onAllCompleted();
     return true;
   },
 
-  // Được gọi từ hook Player.update mỗi frame
   trackMovement(px, py) {
-    if (!this._lastPos) {
-      this._lastPos = { x: px, y: py };
-      return;
-    }
+    if (!this._lastPos) { this._lastPos = { x: px, y: py }; return; }
     const moved = Utils.dist(px, py, this._lastPos.x, this._lastPos.y);
     if (moved > 0 && moved < 50) {
       this.state.sessionMoveDistance += moved;
@@ -287,14 +246,12 @@ const DivineMissionSystem = {
     this._lastPos = { x: px, y: py };
   },
 
-  // Được gọi từ hook Player.heal (phần MP)
   trackMpRegen(amount) {
     if (amount <= 0) return;
     this.state.sessionMpRegen += amount;
     this.updateProgress('regen', 'mp', amount);
   },
 
-  // Được gọi từ hook Player.gainRealmExp
   trackRealmExp(amount) {
     this.state.sessionRealmExp += amount;
     this.updateProgress('realmExp', null, amount);
@@ -315,15 +272,14 @@ const OfflineProgressSystem = {
   _pendingRewards: null,
 
   calculate() {
-    const now = Date.now();
+    const now     = Date.now();
     const elapsed = now - this.state.lastLoginTime;
     if (elapsed < 60000) return null;
 
-    const offlineMs   = Math.min(elapsed, DAILY_CONFIG.offlineCap);
+    const offlineMs    = Math.min(elapsed, DAILY_CONFIG.offlineCap);
     const offlineHours = offlineMs / (60 * 60 * 1000);
-
-    const mapIdx = (typeof Maps !== 'undefined') ? (Maps.currentIndex || 0) : 0;
-    const mapMul = DAILY_CONFIG.offlineMapMultiplier[mapIdx] || 1.0;
+    const mapIdx       = (typeof Maps !== 'undefined') ? (Maps.currentIndex || 0) : 0;
+    const mapMul       = DAILY_CONFIG.offlineMapMultiplier[mapIdx] || 1.0;
 
     let sectBonus = 1.0;
     if (typeof SectSystem !== 'undefined' && SectSystem.state && SectSystem.state.founded) {
@@ -331,15 +287,10 @@ const OfflineProgressSystem = {
       sectBonus = 1 + disciples * 0.05;
     }
 
-    const lvl       = (typeof Player !== 'undefined') ? (Player.level || 1) : 1;
-    const baseExp   = lvl * DAILY_CONFIG.offlineBaseExpPerHour;
-    const baseGold  = lvl * DAILY_CONFIG.offlineBaseGoldPerHour;
-
-    const totalExp  = Math.floor(baseExp  * offlineHours * mapMul * sectBonus);
-    const totalGold = Math.floor(baseGold * offlineHours * mapMul * sectBonus);
-
-    const mapName = (typeof Maps !== 'undefined' && Maps.data && Maps.data[mapIdx])
-      ? Maps.data[mapIdx].name : 'Bản Đồ';
+    const lvl      = (typeof Player !== 'undefined') ? (Player.level || 1) : 1;
+    const totalExp  = Math.floor(lvl * DAILY_CONFIG.offlineBaseExpPerHour  * offlineHours * mapMul * sectBonus);
+    const totalGold = Math.floor(lvl * DAILY_CONFIG.offlineBaseGoldPerHour * offlineHours * mapMul * sectBonus);
+    const mapName   = (typeof Maps !== 'undefined' && Maps.data && Maps.data[mapIdx]) ? Maps.data[mapIdx].name : 'Bản Đồ';
 
     return {
       offlineMs,
@@ -355,7 +306,7 @@ const OfflineProgressSystem = {
     const today = DivineMissionSystem.getTodayString();
     if (this.state.lastClaimDate !== today) {
       this.state.dailyClaimCount = 0;
-      this.state.lastClaimDate = today;
+      this.state.lastClaimDate   = today;
     }
     return this.state.dailyClaimCount < DAILY_CONFIG.offlineDailyLimit;
   },
@@ -370,26 +321,19 @@ const OfflineProgressSystem = {
     UI.updateGold();
     this.state.dailyClaimCount++;
     this.state.lastLoginTime = Date.now();
-    UI.addLog('💤 Offline ' + rewards.offlineHours + 'h: +' +
-      rewards.exp + ' EXP, +' + rewards.gold + ' 💰', 'exp');
+    UI.addLog('💤 Offline ' + rewards.offlineHours + 'h: +' + rewards.exp + ' EXP, +' + rewards.gold + ' 💰', 'exp');
     this._pendingRewards = null;
     return true;
   },
 
   onGameLoad() {
     const rewards = this.calculate();
-    if (!rewards || rewards.exp === 0) {
-      this.state.lastLoginTime = Date.now();
-      return;
-    }
-    if (!this.canClaim()) {
+    if (!rewards || rewards.exp === 0 || !this.canClaim()) {
       this.state.lastLoginTime = Date.now();
       return;
     }
     this._pendingRewards = rewards;
-    setTimeout(() => {
-      OfflineProgressHUD.show(rewards);
-    }, 1000);
+    setTimeout(() => OfflineProgressHUD.show(rewards), 1000);
   }
 };
 
@@ -402,7 +346,6 @@ const DivineMissionHUD = {
   _badgeEl: null,
 
   init() {
-    // Inject HTML
     const hudHtml = `
 <!-- Divine Mission Panel -->
 <div id="divineMissionPanel" style="display:none;position:fixed;right:70px;bottom:200px;z-index:22;
@@ -434,62 +377,57 @@ const DivineMissionHUD = {
 </div>`;
     document.body.insertAdjacentHTML('beforeend', hudHtml);
 
-    // Close button
     document.getElementById('divinePanelClose').onclick = () => {
       document.getElementById('divineMissionPanel').style.display = 'none';
     };
 
-    // Inject badge vào menu button Nhiệm vụ (iconQuest)
     this._injectBadge();
   },
 
   _injectBadge() {
-    // Tìm button quest trong menu
     const questBtn = document.getElementById('iconQuest') ||
       [...document.querySelectorAll('.menu-btn')].find(b => b.textContent.includes('nhiệm') || b.textContent.includes('Quest'));
 
-    if (questBtn) {
-      questBtn.style.position = 'relative';
-      const badge = document.createElement('div');
-      badge.id = 'divineBadge';
-      badge.style.cssText = `
-        display:none;position:absolute;top:-4px;right:-4px;
-        background:#f44336;color:#fff;font-size:9px;font-weight:bold;
-        border-radius:8px;padding:1px 5px;min-width:16px;text-align:center;
-        pointer-events:none;z-index:5;`;
-      questBtn.appendChild(badge);
-      this._badgeEl = badge;
+    if (!questBtn) return;
 
-      // Wrap onclick — mở Divine panel thay vì/thêm vào quest panel
-      const origOnclick = questBtn.onclick;
-      questBtn.onclick = (e) => {
-        const panel = document.getElementById('divineMissionPanel');
-        if (panel.style.display === 'none' || panel.style.display === '') {
-          DivineMissionPanel.render();
-          panel.style.display = 'block';
-        } else {
-          panel.style.display = 'none';
-        }
-        // Gọi hành vi gốc nếu cần (comment nếu muốn thay hoàn toàn)
-        // if (origOnclick) origOnclick.call(questBtn, e);
-      };
-    }
+    questBtn.style.position = 'relative';
+    const badge = document.createElement('div');
+    badge.id = 'divineBadge';
+    badge.style.cssText = `
+      display:none;position:absolute;top:-4px;right:-4px;
+      background:#f44336;color:#fff;font-size:9px;font-weight:bold;
+      border-radius:8px;padding:1px 5px;min-width:16px;text-align:center;
+      pointer-events:none;z-index:5;`;
+    questBtn.appendChild(badge);
+    this._badgeEl = badge;
+
+    // Replace onclick to toggle Divine Mission Panel
+    questBtn.onclick = () => {
+      const panel = document.getElementById('divineMissionPanel');
+      if (!panel) return;
+      if (panel.style.display === 'none' || panel.style.display === '') {
+        DivineMissionPanel.render();
+        panel.style.display = 'block';
+      } else {
+        panel.style.display = 'none';
+      }
+    };
   },
 
   updateBadge() {
-    const missions = DivineMissionSystem.state.missions;
-    const unclaimed = missions.filter(m => m.completed && !m.claimed).length;
     if (!this._badgeEl) return;
+    const missions  = DivineMissionSystem.state.missions;
+    const unclaimed = missions.filter(m => m.completed && !m.claimed).length;
     if (unclaimed > 0) {
-      this._badgeEl.textContent = unclaimed;
-      this._badgeEl.style.display = 'block';
-      this._badgeEl.style.background = '#f44336';
+      this._badgeEl.textContent       = unclaimed;
+      this._badgeEl.style.display     = 'block';
+      this._badgeEl.style.background  = '#f44336';
     } else {
       const remaining = missions.filter(m => !m.completed).length;
       if (remaining > 0) {
-        this._badgeEl.textContent = remaining;
-        this._badgeEl.style.display = 'block';
-        this._badgeEl.style.background = '#666';
+        this._badgeEl.textContent       = remaining;
+        this._badgeEl.style.display     = 'block';
+        this._badgeEl.style.background  = '#666';
       } else {
         this._badgeEl.style.display = 'none';
       }
@@ -501,14 +439,15 @@ const DivineMissionHUD = {
     const number = document.getElementById('divineStreakNumber');
     if (!popup || !number) return;
     number.textContent = '🔥 ' + streak;
-    popup.style.display = 'block';
-    popup.style.animation = 'streakPop 2s forwards';
+    popup.style.display    = 'block';
+    popup.style.animation  = 'streakPop 2s forwards';
     setTimeout(() => { popup.style.display = 'none'; }, 2100);
   },
 
   _timerInterval: null,
 
   startCountdown() {
+    // Clear previous interval to prevent accumulation
     if (this._timerInterval) clearInterval(this._timerInterval);
     this._timerInterval = setInterval(() => {
       const el = document.getElementById('divineResetTimer');
@@ -530,7 +469,6 @@ const DivineMissionPanel = {
   render() {
     const s = DivineMissionSystem.state;
 
-    // Streak bar
     const streakCount = document.getElementById('divineStreakCount');
     const streakNext  = document.getElementById('divineStreakNext');
     if (streakCount) streakCount.textContent = s.streak + ' ngày liên tiếp';
@@ -541,18 +479,17 @@ const DivineMissionPanel = {
         : 'Đã đạt mốc streak cao nhất!';
     }
 
-    // Mission list
     const list = document.getElementById('divineMissionList');
     if (!list) return;
     list.innerHTML = '';
 
-    const diffColors  = { easy: '#4caf50', normal: '#ff9800', hard: '#f44336' };
-    const diffLabels  = { easy: 'DỄ', normal: 'TB', hard: 'KHÓ' };
+    const diffColors = { easy: '#4caf50', normal: '#ff9800', hard: '#f44336' };
+    const diffLabels = { easy: 'DỄ',     normal: 'TB',       hard: 'KHÓ'   };
 
     s.missions.forEach((m, i) => {
-      const pct  = Math.min(100, Math.floor((m.progress / m.count) * 100));
-      const col  = diffColors[m.difficulty] || '#888';
-      const lbl  = diffLabels[m.difficulty] || m.difficulty;
+      const pct = Math.min(100, Math.floor((m.progress / m.count) * 100));
+      const col = diffColors[m.difficulty] || '#888';
+      const lbl = diffLabels[m.difficulty] || m.difficulty;
 
       let actionHtml = '';
       if (m.claimed) {
@@ -628,9 +565,7 @@ const OfflineProgressHUD = {
     document.body.insertAdjacentHTML('beforeend', hudHtml);
 
     document.getElementById('offlineHUDClaim').onclick = () => {
-      if (this._currentRewards) {
-        OfflineProgressSystem.claim(this._currentRewards);
-      }
+      if (this._currentRewards) OfflineProgressSystem.claim(this._currentRewards);
       this.hide();
     };
 
@@ -646,14 +581,10 @@ const OfflineProgressHUD = {
     if (!hud) return;
 
     document.getElementById('offlineHUDTime').textContent  = 'Vắng mặt: ' + rewards.offlineHours + ' giờ';
-    document.getElementById('offlineHUDExp').textContent   = '+' + rewards.exp + ' EXP';
+    document.getElementById('offlineHUDExp').textContent   = '+' + rewards.exp  + ' EXP';
     document.getElementById('offlineHUDGold').textContent  = '+' + rewards.gold + ' 💰';
     const bonusEl = document.getElementById('offlineHUDBonus');
-    if (rewards.sectBonus) {
-      bonusEl.textContent = '🏯 Tông Môn +' + rewards.sectBonus;
-    } else {
-      bonusEl.textContent = '📍 ' + rewards.mapName;
-    }
+    bonusEl.textContent = rewards.sectBonus ? '🏯 Tông Môn +' + rewards.sectBonus : '📍 ' + rewards.mapName;
 
     const claimsLeft = DAILY_CONFIG.offlineDailyLimit - OfflineProgressSystem.state.dailyClaimCount;
     document.getElementById('offlineClaimInfo').textContent =
@@ -685,7 +616,7 @@ const OfflineProgressHUD = {
 const DailyLoopSystem = {
 
   init() {
-    // 1. Inject CSS
+    // Inject CSS
     if (!document.getElementById('daily-loop-style')) {
       const style = document.createElement('style');
       style.id = 'daily-loop-style';
@@ -702,17 +633,10 @@ const DailyLoopSystem = {
       document.head.appendChild(style);
     }
 
-    // 2. Inject UI
     DivineMissionHUD.init();
     OfflineProgressHUD.init();
-
-    // 3. Load saved data
     this.loadSavedData();
-
-    // 4. Check reset
     DivineMissionSystem.checkReset();
-
-    // 5. Update badge
     DivineMissionHUD.updateBadge();
 
     console.log('🌟 Daily Loop System loaded (Divine Missions + Offline Progress)');
@@ -725,9 +649,7 @@ const DailyLoopSystem = {
       const saved = JSON.parse(raw);
 
       if (saved.divine) {
-        const def = DivineMissionSystem.state;
-        DivineMissionSystem.state = Object.assign({}, def, saved.divine);
-        // Restore nested objects
+        DivineMissionSystem.state = Object.assign({}, DivineMissionSystem.state, saved.divine);
         if (!DivineMissionSystem.state.killCount) DivineMissionSystem.state.killCount = {};
       }
 
@@ -741,44 +663,42 @@ const DailyLoopSystem = {
 
   saveData() {
     try {
-      const data = {
+      localStorage.setItem(DAILY_CONFIG.storageKey, JSON.stringify({
         divine:  DivineMissionSystem.state,
         offline: OfflineProgressSystem.state
-      };
-      localStorage.setItem(DAILY_CONFIG.storageKey, JSON.stringify(data));
+      }));
     } catch (e) {
       console.error('DailyLoop save error:', e);
     }
   },
 
-  // Monkey-patch tất cả hooks
+  // Guard against duplicate hook installation
   _hookInstalled: false,
+
   installHooks() {
     if (this._hookInstalled) return;
     this._hookInstalled = true;
 
-    // ---- Hook: Enemies.kill ----
+    // Hook: Enemies.kill
     if (typeof Enemies !== 'undefined' && Enemies.kill) {
       const _origKill = Enemies.kill.bind(Enemies);
       Enemies.kill = function(enemy) {
         _origKill(enemy);
         if (!enemy) return;
         const type = enemy.type || 'unknown';
-        DivineMissionSystem.updateProgress('kill', type, 1);
-        DivineMissionSystem.updateProgress('kill', 'any', 1);
+        DivineMissionSystem.updateProgress('kill', type,       1);
+        DivineMissionSystem.updateProgress('kill', 'any',      1);
         if (enemy.isBossEvent) DivineMissionSystem.updateProgress('kill', 'bossEvent', 1);
-        if (enemy.boss)        DivineMissionSystem.updateProgress('kill', 'boss', 1);
+        if (enemy.boss)        DivineMissionSystem.updateProgress('kill', 'boss',      1);
       };
     }
 
-    // ---- Hook: Player.update (movement tracking) ----
+    // Hook: Player.update (movement + combo tracking)
     if (typeof Player !== 'undefined' && Player.update) {
       const _origPlayerUpdate = Player.update.bind(Player);
       Player.update = function(dt, mx, my) {
-        const px = Player.x, py = Player.y;
         _origPlayerUpdate(dt, mx, my);
         DivineMissionSystem.trackMovement(Player.x, Player.y);
-        // Combo tracking
         if (typeof ComboSystem !== 'undefined' && ComboSystem.state) {
           const cur = ComboSystem.state.count || 0;
           if (cur > DivineMissionSystem.state.comboMaxReached) {
@@ -789,18 +709,16 @@ const DailyLoopSystem = {
       };
     }
 
-    // ---- Hook: Player.heal (MP regen tracking) ----
+    // Hook: Player.heal (MP regen tracking)
     if (typeof Player !== 'undefined' && Player.heal) {
       const _origHeal = Player.heal.bind(Player);
       Player.heal = function(hp, mp) {
         _origHeal(hp, mp);
-        if (mp && mp > 0) {
-          DivineMissionSystem.trackMpRegen(mp);
-        }
+        if (mp && mp > 0) DivineMissionSystem.trackMpRegen(mp);
       };
     }
 
-    // ---- Hook: Player.gainRealmExp (Tu Vi tracking) ----
+    // Hook: Player.gainRealmExp (Tu Vi tracking)
     if (typeof Player !== 'undefined' && Player.gainRealmExp) {
       const _origGainRealmExp = Player.gainRealmExp.bind(Player);
       Player.gainRealmExp = function(amount) {
@@ -809,21 +727,18 @@ const DailyLoopSystem = {
       };
     }
 
-    // ---- Hook: Inventory.useItem (potion + special items) ----
+    // Hook: Inventory.useItem (potion + special items)
     if (typeof Inventory !== 'undefined' && Inventory.useItem) {
       const _origUseItem = Inventory.useItem.bind(Inventory);
       Inventory.useItem = function(itemId) {
         const itemData = ITEMS[itemId];
-        const result = _origUseItem(itemId);
+        const result   = _origUseItem(itemId);
         if (!result) return false;
 
         if (itemData) {
-          // Potion tracking
-          if (itemData.type === 'consumable' &&
-              (itemData.effect?.hp || itemData.effect?.mp)) {
+          if (itemData.type === 'consumable' && (itemData.effect?.hp || itemData.effect?.mp)) {
             DivineMissionSystem.updateProgress('use', 'potion', 1);
           }
-          // Streak protector
           if (itemData.effect?.protectStreak) {
             DivineMissionSystem.state.protectorActive = true;
             UI.addLog('🛡️ Hộ Mệnh Phù kích hoạt! Streak được bảo vệ hôm nay.', 'system');
@@ -833,7 +748,7 @@ const DailyLoopSystem = {
       };
     }
 
-    // ---- Hook: Game.save (lưu daily data) ----
+    // Hook: Game.save
     if (typeof Game !== 'undefined' && Game.save) {
       const _origSave = Game.save.bind(Game);
       Game.save = function() {
@@ -843,13 +758,12 @@ const DailyLoopSystem = {
       };
     }
 
-    // ---- Hook: Game.update (checkReset mỗi frame - cheap) ----
+    // Hook: Game.update — check daily reset cheaply each frame
     if (typeof Game !== 'undefined' && Game.update) {
-      const _origUpdate = Game.update.bind(Game);
-      let _lastResetCheck = '';
+      const _origUpdate    = Game.update.bind(Game);
+      let   _lastResetCheck = '';
       Game.update = function(dt) {
         _origUpdate(dt);
-        // Chỉ check khi chuỗi ngày thay đổi (cheap so sánh string)
         const today = DivineMissionSystem.getTodayString();
         if (today !== _lastResetCheck) {
           _lastResetCheck = today;
@@ -861,9 +775,8 @@ const DailyLoopSystem = {
 };
 
 // ============================================================
-// AUTO-INIT: wrap Game.init để chạy sau khi game sẵn sàng
+// AUTO-INIT: wrap Game.init
 // ============================================================
-
 (function() {
   const _tryInit = () => {
     if (typeof Game === 'undefined' || !Game.init) {
@@ -879,22 +792,19 @@ const DailyLoopSystem = {
     };
   };
 
-  // Nếu Game.init đã bị gọi rồi (DOM ready trước khi script load)
-  if (document.readyState === 'complete' || document.readyState === 'interactive') {
-    // Game có thể đã init — thử fallback
-    if (typeof Game !== 'undefined' && typeof GameState !== 'undefined' && GameState.running !== undefined) {
-      // Game đã init, chạy thẳng
-      setTimeout(() => {
-        DailyLoopSystem.init();
-        DailyLoopSystem.installHooks();
-        setTimeout(() => OfflineProgressSystem.onGameLoad(), 1500);
-      }, 300);
-    } else {
-      _tryInit();
-    }
-  } else {
+  if (document.readyState === 'loading') {
     document.addEventListener('DOMContentLoaded', _tryInit);
+  } else if (typeof Game !== 'undefined' && typeof GameState !== 'undefined' && GameState.running !== undefined) {
+    // Game already initialized — hook directly
+    setTimeout(() => {
+      DailyLoopSystem.init();
+      DailyLoopSystem.installHooks();
+      setTimeout(() => OfflineProgressSystem.onGameLoad(), 1500);
+    }, 300);
+  } else {
+    _tryInit();
   }
 })();
 
 console.log('📦 feature_daily_loop.js loaded');
+// ===== CHANGES: Rút gọn auto-init IIFE (bỏ nhánh readyState trùng); xóa dead comment `// if (origOnclick)...` trong _injectBadge; gom onGameLoad (bỏ if chain thành guard clause); xác nhận _hookInstalled guard hoạt động đúng; startCountdown đã có clearInterval guard =====

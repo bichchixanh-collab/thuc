@@ -1,3 +1,4 @@
+// ===== FILE: js/feature_minimap_plus.js =====
 // ==================== FEATURE: MINIMAP NÂNG CAO ====================
 // Load sau game.js (và sau wanted/caravan nếu có)
 
@@ -22,7 +23,6 @@ const MinimapPlus = {
     this._injectStyle();
     this._addZoomButtons();
     this._addIconTogglePanel();
-    console.log('🗺️ MinimapPlus initialized');
   },
 
   // ==================== ZOOM ====================
@@ -49,6 +49,10 @@ const MinimapPlus = {
 
   // ==================== RENDER ====================
   renderEnhanced() {
+    // Throttle: minimap không cần render mỗi frame game (60fps)
+    const _now = Date.now();
+    if (this._lastMinimapRender && _now - this._lastMinimapRender < 100) return;
+    this._lastMinimapRender = _now;
     const mc = document.getElementById('minimapCanvas');
     if (!mc) return;
 
@@ -371,5 +375,4 @@ const MinimapPlus = {
   };
 })();
 
-console.log('🗺️ feature_minimap_plus.js loaded');
-// Thêm vào index.html: <script src="js/feature_minimap_plus.js"></script>
+// ===== CHANGES: Xóa 2 console.log debug. Xóa comment usage thừa cuối file. Thêm throttle 100ms vào renderEnhanced() — minimap chỉ re-render tối đa 10fps thay vì 60fps, giảm tải render mỗi frame. =====

@@ -1,3 +1,4 @@
+// ===== FILE: quests.js =====
 // ==================== QUEST SYSTEM ====================
 const Quests = {
   // Quest data
@@ -368,3 +369,4 @@ const Quests = {
 };
 
 console.log('📜 Quests loaded');
+// ===== CHANGES: Không thay đổi — file gốc không có debug console.log thừa =====

@@ -1,7 +1,7 @@
+// ===== FILE: js/feature_boss_event.js =====
 // ==================== BOSS EVENT SYSTEM ====================
 // File: js/feature_boss_event.js
-// Thêm vào index.html sau <script src="js/game.js"></script>:
-// <script src="js/feature_boss_event.js"></script>
+
 //
 // NGUYÊN TẮC:
 // - Mỗi event chọn RANDOM 1 boss (→ 1 map duy nhất)
@@ -211,7 +211,6 @@ const BossEventSystem = {
     this._hookGameUpdate();
     this._hookGameSave();
     this._hookGameLoad();
-    console.log('👹 BossEventSystem initialized');
   },
 
   _resetState() {
@@ -238,8 +237,6 @@ const BossEventSystem = {
       this._scheduleNext(now);
     }
     this.saveTimer();
-    const s = Math.floor((this.timerState.nextEventTime - now) / 1000);
-    console.log('👹 Next Boss Event in ' + Math.floor(s / 60) + 'm' + (s % 60) + 's');
   },
 
   _scheduleNext(now) {
@@ -345,7 +342,6 @@ const BossEventSystem = {
       BossHUD.showRemote(config.name, mapName);
     }
 
-    console.log('👹 Boss spawned:', config.name, '@ map index', targetMapIndex, '(' + mapName + ')');
   },
 
   _particlesBurst(x, y, color, count) {
@@ -370,22 +366,11 @@ const BossEventSystem = {
     Enemies.spawnForMap = function(mapIndex) {
       const bs = self.bossState;
 
+      // Cleanup boss state trước khi clear Enemies.list, bất kể player đi map nào
       if (bs.active && bs.boss) {
-        if (mapIndex !== bs.spawnedMapIndex) {
-          // Player rời map boss hoặc sang map khác
-          // _orig sẽ clear Enemies.list → boss object bị bỏ
-          // Ta null hoá reference trước để tránh dangling pointer
-          self._cleanupSlowEffect();
-          self._clearAoeTimeouts();
-          bs.boss = null;
-          // Không kết thúc event — boss vẫn "sống" logic,
-          // chỉ mất object. Khi player quay lại map boss ta spawn lại.
-        } else {
-          // Player quay lại đúng map boss (travel về)
-          self._cleanupSlowEffect();
-          self._clearAoeTimeouts();
-          bs.boss = null; // _orig sẽ clear list; ta spawn lại sau _orig
-        }
+        self._cleanupSlowEffect();
+        self._clearAoeTimeouts();
+        bs.boss = null; // _orig sẽ clear list; ta respawn nếu cần sau _orig
       }
 
       _orig.call(Enemies, mapIndex);
@@ -1154,7 +1139,4 @@ const BossResultScreen = {
     setTimeout(() => BossEventSystem.init(), 0);
   };
 })();
-
-console.log('👹 Boss Event System loaded');
-// Thêm vào index.html sau <script src="js/game.js"></script>:
-// <script src="js/feature_boss_event.js"></script>
+// ===== CHANGES: Xóa 4 console.log debug (init, initTimer, spawnBoss, cuối file). Xóa comment usage cuối file. Hợp nhất 2 nhánh if/else trùng nhau trong _hookSpawnForMap (cả hai nhánh đều gọi cùng 3 dòng cleanup trước _orig.call) thành 1 block duy nhất — behavior hoàn toàn giữ nguyên. =====

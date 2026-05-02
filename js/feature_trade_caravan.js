@@ -1,3 +1,4 @@
+// ===== FILE: feature_trade_caravan.js =====
 // ==================== FEATURE: THƯƠNG ĐOÀN / LỮ HÀNH ====================
 // Load sau game.js
 // Xuất hiện theo giờ thực: 8h, 12h, 18h, 22h
@@ -5,10 +6,9 @@
 
 const CaravanSystem = {
   // ==================== CONFIG ====================
-  scheduleHours: [8, 12, 18, 22],  // giờ xuất hiện mỗi ngày
-  durationMinutes: 60,              // tồn tại 60 phút
+  scheduleHours: [8, 12, 18, 22],
+  durationMinutes: 60,
 
-  // Item pool rotation (phân theo nhóm)
   itemPools: {
     common:    ['hpPotion', 'mpPotion', 'wolfFang', 'wolfPelt'],
     rare:      ['hpPotionMedium', 'mpPotionMedium', 'expPotion', 'realmPill', 'spiritStone', 'demonCore', 'steelSword', 'ironArmor', 'spiritRobe', 'silverRing'],
@@ -18,24 +18,23 @@ const CaravanSystem = {
 
   // Caravan positions per map (fixed spots)
   positions: [
-    { x: 700, y: 350 },   // map 0
-    { x: 600, y: 700 },   // map 1
-    { x: 800, y: 500 },   // map 2
-    { x: 500, y: 800 },   // map 3
-    { x: 750, y: 600 },   // map 4
-    { x: 650, y: 400 },   // map 5
+    { x: 700, y: 350 },
+    { x: 600, y: 700 },
+    { x: 800, y: 500 },
+    { x: 500, y: 800 },
+    { x: 750, y: 600 },
+    { x: 650, y: 400 },
   ],
 
-  // Price variance: ±20% random each session
   priceVariance: 0.20,
 
   // State
   active: false,
   sessionId: null,
-  currentItems: [],     // { id, basePrice, price, stock }
+  currentItems: [],
   nextSessionTime: null,
   sessionEndTime: null,
-  npcRef: null,         // injected into NPC.list
+  npcRef: null,
 
   // ==================== INIT ====================
   init() {
@@ -49,49 +48,47 @@ const CaravanSystem = {
 
   // ==================== SCHEDULING ====================
   _scheduleNext() {
-    const now = new Date();
+    const now  = new Date();
     const nowH = now.getHours();
     const nowM = now.getMinutes();
 
     let next = null;
     for (const h of this.scheduleHours) {
       if (h > nowH || (h === nowH && nowM < 1)) {
-        next = new Date(now); next.setHours(h, 0, 0, 0);
+        next = new Date(now);
+        next.setHours(h, 0, 0, 0);
         break;
       }
     }
     if (!next) {
       // Next is tomorrow's first slot
-      next = new Date(now); next.setDate(now.getDate() + 1);
+      next = new Date(now);
+      next.setDate(now.getDate() + 1);
       next.setHours(this.scheduleHours[0], 0, 0, 0);
     }
     this.nextSessionTime = next.getTime();
   },
 
   _checkCurrentSession() {
-    const now = Date.now();
+    const now     = Date.now();
     const nowDate = new Date();
-    const h = nowDate.getHours();
 
     for (const sh of this.scheduleHours) {
-      const start = new Date(nowDate); start.setHours(sh, 0, 0, 0);
-      const end   = new Date(nowDate); end.setHours(sh, this.durationMinutes, 0, 0);
+      const start = new Date(nowDate); start.setHours(sh, 0,                    0, 0);
+      const end   = new Date(nowDate); end.setHours(sh,   this.durationMinutes, 0, 0);
       if (now >= start.getTime() && now < end.getTime()) {
-        // We're inside a session window
         const sid = `${nowDate.toDateString()}_${sh}`;
-        if (this.sessionId !== sid) {
-          this._startSession(sid, end.getTime());
-        }
+        if (this.sessionId !== sid) this._startSession(sid, end.getTime());
         return;
       }
     }
   },
 
   _startSession(sid, endTime) {
-    this.sessionId = sid;
+    this.sessionId      = sid;
     this.sessionEndTime = endTime;
-    this.active = true;
-    this.currentItems = this._generateItems();
+    this.active         = true;
+    this.currentItems   = this._generateItems();
     this._spawnNPC();
     UI.addLog?.('🛒 Thương Đoàn đã đến! Ghé thăm để mua vật phẩm hiếm!', 'system');
     UI.showNotification?.('🛒 THƯƠNG ĐOÀN ĐẾN!', 'Vị trí đã đánh dấu trên minimap');
@@ -109,10 +106,8 @@ const CaravanSystem = {
   },
 
   _generateItems() {
-    const items = [];
     const mapLvl = Maps.data[Maps.currentIndex].lvl || 1;
 
-    // Always add some common + rare
     const picks = [
       ...this._pickFromPool('common',    3),
       ...this._pickFromPool('rare',      mapLvl >= 10 ? 4 : 2),
@@ -120,15 +115,11 @@ const CaravanSystem = {
       ...this._pickFromPool('legendary', mapLvl >= 60 ? 1 : 0),
     ];
 
-    const baseprices = {
-      common: 60, rare: 200, epic: 600, legendary: 2000
-    };
-
+    const items = [];
     for (const id of picks) {
       const itemData = ITEMS[id];
       if (!itemData) continue;
-      const tier = itemData.rarity || 'common';
-      const base = (itemData.sellPrice || 50) * 3;
+      const base     = (itemData.sellPrice || 50) * 3;
       const variance = 1 + (Math.random() - 0.5) * 2 * this.priceVariance;
       items.push({
         id,
@@ -141,8 +132,8 @@ const CaravanSystem = {
   },
 
   _pickFromPool(tier, count) {
-    const pool = [...(this.itemPools[tier] || [])].sort(() => Math.random() - 0.5);
-    return pool.slice(0, count);
+    if (count <= 0) return [];
+    return [...(this.itemPools[tier] || [])].sort(() => Math.random() - 0.5).slice(0, count);
   },
 
   // ==================== NPC SPAWN ====================
@@ -175,8 +166,8 @@ const CaravanSystem = {
   buyItem(idx) {
     const slot = this.currentItems[idx];
     if (!slot || slot.stock <= 0) { UI.addLog('❌ Hết hàng!', 'system'); return false; }
-    if (Player.gold < slot.price) { UI.addLog(`❌ Không đủ vàng! Cần ${slot.price} 💰`, 'system'); return false; }
-    if (!Inventory.add(slot.id, 1)) { UI.addLog('❌ Túi đồ đầy!', 'system'); return false; }
+    if (Player.gold < slot.price)  { UI.addLog(`❌ Không đủ vàng! Cần ${slot.price} 💰`, 'system'); return false; }
+    if (!Inventory.add(slot.id, 1)){ UI.addLog('❌ Túi đồ đầy!', 'system'); return false; }
 
     Player.gold -= slot.price;
     slot.stock--;
@@ -200,19 +191,14 @@ const CaravanSystem = {
       this._checkCurrentSession();
     }
 
-    // Sync NPC canInteract
     if (this.npcRef) {
-      const dist = Utils.dist(Player.x, Player.y, this.npcRef.x, this.npcRef.y);
-      this.npcRef.canInteract = dist <= this.npcRef.interactRange;
+      this.npcRef.canInteract = Utils.dist(Player.x, Player.y, this.npcRef.x, this.npcRef.y) <= this.npcRef.interactRange;
     }
   },
 
   // ==================== UI ====================
   openShop() {
-    if (!this.active) {
-      UI.addLog('❌ Thương Đoàn chưa xuất hiện!', 'system');
-      return;
-    }
+    if (!this.active) { UI.addLog('❌ Thương Đoàn chưa xuất hiện!', 'system'); return; }
     document.getElementById('caravanPanel').classList.add('show');
     this._renderShopUI();
   },
@@ -222,7 +208,7 @@ const CaravanSystem = {
   },
 
   _renderShopUI() {
-    const now = Date.now();
+    const now       = Date.now();
     const remaining = Math.max(0, Math.ceil((this.sessionEndTime - now) / 60000));
 
     document.getElementById('caravanTimer').textContent = `⏰ Còn ${remaining} phút`;
@@ -235,14 +221,19 @@ const CaravanSystem = {
       return;
     }
 
+    const rarityColors = { common: '#ccc', rare: '#a855f7', epic: '#f97316', legendary: '#f0c040' };
+
     for (let i = 0; i < this.currentItems.length; i++) {
-      const slot = this.currentItems[i];
+      const slot     = this.currentItems[i];
       const itemData = ITEMS[slot.id];
       if (!itemData) continue;
 
-      const rarityColors = { common: '#ccc', rare: '#a855f7', epic: '#f97316', legendary: '#f0c040' };
-      const color = rarityColors[itemData.rarity] || '#ccc';
+      const color  = rarityColors[itemData.rarity] || '#ccc';
       const canBuy = Player.gold >= slot.price && slot.stock > 0;
+
+      const statText = itemData.stats ? Object.entries(itemData.stats).map(([k, v]) =>
+        `+${typeof v === 'number' && v < 1 ? (v * 100).toFixed(0) + '%' : v} ${k.toUpperCase()}`
+      ).join(' ') : '';
 
       const div = document.createElement('div');
       div.style.cssText = `
@@ -251,11 +242,6 @@ const CaravanSystem = {
         display:flex;justify-content:space-between;align-items:center;
         ${slot.stock === 0 ? 'opacity:0.4' : ''}
       `;
-
-      const statText = itemData.stats ? Object.entries(itemData.stats).map(([k, v]) =>
-        `+${typeof v === 'number' && v < 1 ? (v * 100).toFixed(0) + '%' : v} ${k.toUpperCase()}`
-      ).join(' ') : '';
-
       div.innerHTML = `
         <div style="flex:1">
           <div style="color:${color};font-size:12px;font-weight:bold">${itemData.name}</div>
@@ -278,9 +264,9 @@ const CaravanSystem = {
     const badge = document.getElementById('caravanBadge');
     if (!badge) return;
     if (this.active) {
-      badge.style.display = 'block';
       const remaining = Math.max(0, Math.ceil((this.sessionEndTime - Date.now()) / 60000));
-      badge.textContent = `🛒 ${remaining}p`;
+      badge.textContent   = `🛒 ${remaining}p`;
+      badge.style.display = 'block';
     } else {
       badge.style.display = 'none';
     }
@@ -288,15 +274,14 @@ const CaravanSystem = {
 
   renderMinimapMarker(mctx, scale) {
     if (!this.active || !this.npcRef) return;
-    const now = Date.now();
-    const pulse = (Math.sin(now / 500) + 1) / 2;
+    const pulse = (Math.sin(Date.now() / 500) + 1) / 2;
     mctx.fillStyle = `rgba(255,215,0,${0.7 + pulse * 0.3})`;
     mctx.beginPath();
     mctx.arc(this.npcRef.x * scale, this.npcRef.y * scale, 5, 0, Math.PI * 2);
     mctx.fill();
-    mctx.fillStyle = '#fff';
-    mctx.font = '8px monospace';
-    mctx.textAlign = 'center';
+    mctx.fillStyle  = '#fff';
+    mctx.font       = '8px monospace';
+    mctx.textAlign  = 'center';
     mctx.fillText('🛒', this.npcRef.x * scale, this.npcRef.y * scale + 3);
   },
 
@@ -337,13 +322,11 @@ const CaravanSystem = {
   },
 
   _injectHTML() {
-    // Badge
     const badge = document.createElement('div');
-    badge.id = 'caravanBadge';
+    badge.id      = 'caravanBadge';
     badge.onclick = () => this.openShop();
     document.body.appendChild(badge);
 
-    // Panel
     const panel = document.createElement('div');
     panel.id = 'caravanPanel';
     panel.innerHTML = `
@@ -368,10 +351,10 @@ const CaravanSystem = {
   // ==================== SAVE / LOAD ====================
   getSaveData() {
     return {
-      sessionId: this.sessionId,
-      active: this.active,
-      sessionEndTime: this.sessionEndTime,
-      currentItems: this.currentItems,
+      sessionId:       this.sessionId,
+      active:          this.active,
+      sessionEndTime:  this.sessionEndTime,
+      currentItems:    this.currentItems,
       nextSessionTime: this.nextSessionTime
     };
   },
@@ -384,12 +367,11 @@ const CaravanSystem = {
     try {
       const raw = localStorage.getItem('tuxien_caravan');
       if (!raw) return;
-      const data = JSON.parse(raw);
-      this.sessionId = data.sessionId;
-      this.sessionEndTime = data.sessionEndTime;
-      this.currentItems = data.currentItems || [];
+      const data           = JSON.parse(raw);
+      this.sessionId       = data.sessionId;
+      this.sessionEndTime  = data.sessionEndTime;
+      this.currentItems    = data.currentItems    || [];
       this.nextSessionTime = data.nextSessionTime;
-      // Will be re-checked in _checkCurrentSession
     } catch (e) {}
   }
 };
@@ -403,35 +385,28 @@ const CaravanSystem = {
   Game.update = function (dt) {
     _origUpdate(dt);
     CaravanSystem.update(dt);
-    // Update badge every 30s
     if (GameState.time % 30000 < dt) CaravanSystem._updateBadge();
   };
 
   const _origSave = Game.save.bind(Game);
   Game.save = function () { _origSave(); CaravanSystem._save(); };
 
-  // Hook NPC interact for caravan
   const _origInteract = NPC.interact.bind(NPC);
   NPC.interact = function (npc) {
-    if (npc.isCaravan) {
-      CaravanSystem.openShop();
-      return;
-    }
+    if (npc.isCaravan) { CaravanSystem.openShop(); return; }
     _origInteract(npc);
   };
 
-  // Hook minimap to show caravan marker
   const _origMinimap = Game.renderMinimap.bind(Game);
   Game.renderMinimap = function () {
     _origMinimap();
     const mc = document.getElementById('minimapCanvas');
     if (!mc) return;
-    const mctx = mc.getContext('2d');
+    const mctx  = mc.getContext('2d');
     const scale = mc.width / (CONFIG.WORLD_WIDTH * CONFIG.TILE_SIZE);
     CaravanSystem.renderMinimapMarker(mctx, scale);
   };
 
-  // Reset caravan NPC when travelling
   const _origTravel = Maps.travelTo.bind(Maps);
   Maps.travelTo = function (idx) {
     const result = _origTravel(idx);
@@ -444,4 +419,4 @@ const CaravanSystem = {
 })();
 
 console.log('🛒 feature_trade_caravan.js loaded');
-// Thêm vào index.html: <script src="js/feature_trade_caravan.js"></script>
+// ===== CHANGES: Rút gọn _pickFromPool (guard count<=0 ở đầu); gom canInteract vào 1 dòng; gom bonus/bonusEl logic trong _renderShopUI =====

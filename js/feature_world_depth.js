@@ -1,3 +1,4 @@
+// ===== FILE: js/feature_world_depth.js =====
 // ==================== FEATURE: WORLD DEPTH ====================
 // js/feature_world_depth.js
 // Requires: config.js, maps.js, player.js, enemies.js, game.js, ui.js, inventory.js
@@ -822,7 +823,6 @@ const WorldDepthSystem = {
       document.head.appendChild(style);
     }
 
-    console.log('🌍 World Depth System initialized');
   },
 
   // --- Maps.generate: add new terrain tiles ---
@@ -1074,5 +1074,5 @@ const WorldDepthSystem = {
   };
 })();
 
-console.log('🌍 World Depth loaded (Terrain + Hazards + Variants)');
-// Add to index.html: <script src="js/feature_world_depth.js"></script>
+
+// ===== CHANGES: Xóa 2 console.log debug. Xóa comment usage thừa cuối file. =====

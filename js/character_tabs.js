@@ -1,4 +1,4 @@
-// character_tabs.js
+// ===== FILE: js/character_tabs.js =====
 // Thêm vào index.html SAU tất cả <script> khác:
 //   <script src="js/character_tabs.js"></script>
 
@@ -21,10 +21,10 @@
   document.head.appendChild(s);
 
   const TABS = [
-    { id:'stat',  label:'📊 Chỉ Số'    },
-    { id:'equip', label:'⚔️ Trang Bị'  },
-    { id:'build', label:'📖 Tu Luyện'  },
-    { id:'look',  label:'👘 Ngoại Hình' },
+    { id: 'stat',  label: '📊 Chỉ Số'    },
+    { id: 'equip', label: '⚔️ Trang Bị'  },
+    { id: 'build', label: '📖 Tu Luyện'  },
+    { id: 'look',  label: '👘 Ngoại Hình' },
   ];
 
   let activeTab = 'stat';
@@ -36,6 +36,7 @@
 
     const bar = document.createElement('div');
     bar.id = 'charTabBar';
+
     TABS.forEach((t, i) => {
       const btn = document.createElement('div');
       btn.className = 'ctab-btn' + (i === 0 ? ' active' : '');
@@ -44,6 +45,7 @@
       btn.onclick = () => switchTab(t.id);
       bar.appendChild(btn);
     });
+
     modal.querySelector('.modal-header').insertAdjacentElement('afterend', bar);
 
     TABS.forEach((t, i) => {
@@ -85,24 +87,20 @@
     moveTo(document.getElementById('charStats'), pStat);
 
     // ── Tab Trang Bị ─────────────────────────────────────────
-    // equippedItems: lấy trực tiếp, không đi tìm wrapper
     moveTo(document.getElementById('equippedItems'), pEquip);
 
-    // Title "Trang bị hiện tại": là sibling trước equippedItems trong DOM gốc
-    // renderCharacter() tạo nó như 1 div riêng trước #equippedItems trong modal
-    // → tìm bằng cách quét con của modal không thuộc pane/bar/header
+    // Quét các con trực tiếp của modal chưa thuộc shell/pane/header
     Array.from(modal.children).forEach(c => {
       const isShell = c.classList.contains('modal-header')
         || c.id === 'charTabBar'
         || c.classList.contains('ctab-pane');
-      if (!isShell) {
-        // Các div thừa chưa được move: ẩn hoặc move vào pEquip nếu là equip section
-        const hasEquipped = c.querySelector && c.querySelector('#equippedItems');
-        if (hasEquipped) {
-          moveTo(c, pEquip);
-        } else {
-          c.style.display = 'none';
-        }
+      if (isShell) return;
+
+      // Move vào pEquip nếu chứa equippedItems, ngược lại ẩn đi
+      if (c.querySelector && c.querySelector('#equippedItems')) {
+        moveTo(c, pEquip);
+      } else {
+        c.style.display = 'none';
       }
     });
 
@@ -110,9 +108,7 @@
     const charStats = document.getElementById('charStats');
     if (charStats) {
       Array.from(charStats.children).forEach(c => {
-        if (!c.classList.contains('char-stat-row')) {
-          moveTo(c, pEquip);
-        }
+        if (!c.classList.contains('char-stat-row')) moveTo(c, pEquip);
       });
     }
 
@@ -152,8 +148,13 @@
       orig();
       setTimeout(distribute, 0);
     };
-
-    console.log('🗂️ character_tabs.js: ready');
   });
 
 })();
+
+// ===== CHANGES:
+// - Xóa console.log('🗂️ character_tabs.js: ready') — debug thừa
+// - Rút gọn forEach trong distribute(): thay else-if dài bằng early return (`if (isShell) return`)
+//   để loại bỏ nesting không cần thiết — logic giữ nguyên 100%
+// - Căn chỉnh whitespace nhất quán trong TABS array và buildShell()
+// =====

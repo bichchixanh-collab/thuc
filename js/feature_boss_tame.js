@@ -1,3 +1,4 @@
+// ===== FILE: js/feature_boss_tame.js =====
 // ==================== FEATURE: BOSS TAME ====================
 // feature_boss_tame.js — Thu phục Boss làm Thần Thú
 //
@@ -844,7 +845,6 @@ const BossTameSystem = {
     this._hookSaveLoad();
     this._hookCharPanel();
     TamePromptUI.inject();
-    console.log('🐉 BossTameSystem initialized');
   },
 
   // ─── Hook: Enemies.kill — drop TameBead ─────────────────────
@@ -888,7 +888,6 @@ const BossTameSystem = {
 
   // ─── Hook: Game.renderPet — thay render bằng thần thú ────────
   _hookGameRender() {
-    const _origRender = Game.render.bind(Game);
     const self = this;
 
     // Hook vào renderPlayer để render tame sau player
@@ -1085,7 +1084,4 @@ const TamePromptUI = {
     setTimeout(tryInit, 100);
   }
 })();
-
-console.log('🐉 feature_boss_tame.js loaded');
-// Load sau game.js và feature_boss_event.js:
-// <script src="js/feature_boss_tame.js"></script>
+// ===== CHANGES: Xóa 2 console.log debug. Xóa comment usage cuối file. Xóa biến dead _origRender trong _hookGameRender() — biến này được Game.render.bind() nhưng không bao giờ được gọi, chỉ có _origRenderPlayer mới được dùng. =====

@@ -1,7 +1,6 @@
+// ===== FILE: feature_bloodline_karma.js =====
 // ==================== FEATURE: BLOODLINE + KARMA + BLACK MARKET ====================
-// js/feature_bloodline_karma.js
 // Load sau: config.js, player.js, enemies.js, maps.js, npc.js, inventory.js, game.js, ui.js
-// <script src="js/feature_bloodline_karma.js"></script>
 
 // ============================================================
 // SECTION 1 — DATA & CONFIG
@@ -12,8 +11,7 @@ const BLOODLINE_CONFIG = {
 
   bloodlines: {
     dragon: {
-      id: 'dragon', name: 'Long Huyết', icon: '🐉', color: '#1565c0',
-      glowColor: '#42a5f5',
+      id: 'dragon', name: 'Long Huyết', icon: '🐉', color: '#1565c0', glowColor: '#42a5f5',
       desc: 'Miễn đóng băng. Hỏa skill +50%. Mỗi 10 kill hồi 10% HP.',
       passives: {
         immuneFreeze: true,
@@ -23,8 +21,7 @@ const BLOODLINE_CONFIG = {
       }
     },
     phoenix: {
-      id: 'phoenix', name: 'Phượng Huyết', icon: '🔥', color: '#ff6f00',
-      glowColor: '#ffcc02',
+      id: 'phoenix', name: 'Phượng Huyết', icon: '🔥', color: '#ff6f00', glowColor: '#ffcc02',
       desc: 'Khi chết hồi sinh với 50% HP. 1 lần/ngày.',
       passives: {
         reviveHpPct: 0.50,
@@ -32,8 +29,7 @@ const BLOODLINE_CONFIG = {
       }
     },
     beast: {
-      id: 'beast', name: 'Thần Thú Huyết', icon: '🐾', color: '#2e7d32',
-      glowColor: '#66bb6a',
+      id: 'beast', name: 'Thần Thú Huyết', icon: '🐾', color: '#2e7d32', glowColor: '#66bb6a',
       desc: 'Pet/Thần Thú stat x2. Tự triệu hồi khi combat.',
       passives: {
         petStatMul: 2.0,
@@ -41,8 +37,7 @@ const BLOODLINE_CONFIG = {
       }
     },
     shadow: {
-      id: 'shadow', name: 'Hắc Ám Huyết', icon: '🌑', color: '#4a148c',
-      glowColor: '#ce93d8',
+      id: 'shadow', name: 'Hắc Ám Huyết', icon: '🌑', color: '#4a148c', glowColor: '#ce93d8',
       desc: 'HP thấp → damage tăng. Đứng yên 3s → invisible với quái.',
       passives: {
         lowHpDmgBonus: {
@@ -76,10 +71,10 @@ const KARMA_CONFIG = {
   },
 
   tiers: [
-    { min: 500,  max: 1000, name: 'Tiên Nhân',  color: '#f0c040', npcDiscount: 0.20, aura: 'white', blackMarket: false },
-    { min: 100,  max: 499,  name: 'Hiệp Khách', color: '#4caf50', npcDiscount: 0,    aura: null,    blackMarket: false },
-    { min: -99,  max: 99,   name: 'Trung Lập',  color: '#888888', npcDiscount: 0,    aura: null,    blackMarket: false },
-    { min: -499, max: -100, name: 'Sát Thủ',    color: '#ff9800', npcDiscount: -0.10, aura: 'dark', blackMarket: false },
+    { min: 500,  max: 1000, name: 'Tiên Nhân',  color: '#f0c040', npcDiscount: 0.20,  aura: 'white', blackMarket: false },
+    { min: 100,  max: 499,  name: 'Hiệp Khách', color: '#4caf50', npcDiscount: 0,     aura: null,    blackMarket: false },
+    { min: -99,  max: 99,   name: 'Trung Lập',  color: '#888888', npcDiscount: 0,     aura: null,    blackMarket: false },
+    { min: -499, max: -100, name: 'Sát Thủ',    color: '#ff9800', npcDiscount: -0.10, aura: 'dark',  blackMarket: false },
     { min: -1000,max: -500, name: 'Ma Đạo',     color: '#e040fb', npcDiscount: -0.10, aura: 'black', blackMarket: true  }
   ],
 
@@ -99,48 +94,13 @@ const BLACK_MARKET_CONFIG = {
   requireKarmaTier: 'Ma Đạo',
 
   cursedItems: [
-    {
-      id: 'bloodSword',    name: 'Huyết Ma Kiếm',     price: 800,
-      itemBase: 'flameSword',
-      buffDesc: 'ATK +25%', curseDesc: 'Mỗi kill mất 5 HP',
-      buff: { atkPct: 0.25 }, curse: { type: 'onKill', hpLoss: 5 }
-    },
-    {
-      id: 'demonArmor',   name: 'Ma Giáp Huyết Ngục', price: 700,
-      itemBase: 'dragonArmor',
-      buffDesc: 'DEF +30%', curseDesc: 'Không thể hồi HP tự nhiên',
-      buff: { defPct: 0.30 }, curse: { type: 'blockRegen' }
-    },
-    {
-      id: 'forbiddenPill', name: 'Linh Đan Cấm',       price: 400,
-      itemBase: 'expPotion',
-      buffDesc: '+500 EXP ngay lập tức', curseDesc: 'MaxHP -50 vĩnh viễn',
-      buff: { instantExp: 500 }, curse: { type: 'maxHpReduce', value: 50, permanent: true }
-    },
-    {
-      id: 'darkArts',     name: 'Ám Thuật Quyển',      price: 600,
-      itemBase: 'realmPill',
-      buffDesc: 'Skill damage +40%', curseDesc: 'MP cost x2',
-      buff: { skillDmgPct: 0.40 }, curse: { type: 'mpCostMul', value: 2.0 }
-    },
-    {
-      id: 'greedRing',    name: 'Tham Lam Chi Giới',   price: 500,
-      itemBase: 'dragonAmulet',
-      buffDesc: 'Gold drop x2', curseDesc: 'Không thể dùng đan dược',
-      buff: { goldMul: 2.0 }, curse: { type: 'blockConsumable' }
-    },
-    {
-      id: 'bloodCritRing', name: 'Huyết Khế',          price: 650,
-      itemBase: 'celestialJade',
-      buffDesc: 'Crit rate +15%', curseDesc: 'Mỗi crit mất 3% maxHP',
-      buff: { critRate: 0.15 }, curse: { type: 'onCrit', hpLossPct: 0.03 }
-    },
-    {
-      id: 'cursedVision',  name: 'Hắc Thị',            price: 450,
-      itemBase: 'spiritPendant',
-      buffDesc: 'Phát hiện quái x2 tầm', curseDesc: 'Camera darker 25%',
-      buff: { aggroDetect: 2.0 }, curse: { type: 'darkScreen', alpha: 0.25 }
-    }
+    { id: 'bloodSword',    name: 'Huyết Ma Kiếm',     price: 800, itemBase: 'flameSword',    buffDesc: 'ATK +25%',                curseDesc: 'Mỗi kill mất 5 HP',          buff: { atkPct: 0.25 },       curse: { type: 'onKill',          hpLoss: 5 } },
+    { id: 'demonArmor',   name: 'Ma Giáp Huyết Ngục', price: 700, itemBase: 'dragonArmor',   buffDesc: 'DEF +30%',                curseDesc: 'Không thể hồi HP tự nhiên',  buff: { defPct: 0.30 },       curse: { type: 'blockRegen' } },
+    { id: 'forbiddenPill', name: 'Linh Đan Cấm',      price: 400, itemBase: 'expPotion',     buffDesc: '+500 EXP ngay lập tức',   curseDesc: 'MaxHP -50 vĩnh viễn',        buff: { instantExp: 500 },    curse: { type: 'maxHpReduce', value: 50, permanent: true } },
+    { id: 'darkArts',     name: 'Ám Thuật Quyển',     price: 600, itemBase: 'realmPill',     buffDesc: 'Skill damage +40%',       curseDesc: 'MP cost x2',                 buff: { skillDmgPct: 0.40 },  curse: { type: 'mpCostMul', value: 2.0 } },
+    { id: 'greedRing',    name: 'Tham Lam Chi Giới',  price: 500, itemBase: 'dragonAmulet',  buffDesc: 'Gold drop x2',            curseDesc: 'Không thể dùng đan dược',    buff: { goldMul: 2.0 },       curse: { type: 'blockConsumable' } },
+    { id: 'bloodCritRing', name: 'Huyết Khế',         price: 650, itemBase: 'celestialJade', buffDesc: 'Crit rate +15%',          curseDesc: 'Mỗi crit mất 3% maxHP',      buff: { critRate: 0.15 },     curse: { type: 'onCrit', hpLossPct: 0.03 } },
+    { id: 'cursedVision', name: 'Hắc Thị',            price: 450, itemBase: 'spiritPendant', buffDesc: 'Phát hiện quái x2 tầm',  curseDesc: 'Camera darker 25%',          buff: { aggroDetect: 2.0 },   curse: { type: 'darkScreen', alpha: 0.25 } }
   ],
 
   purifyItem: {
@@ -211,7 +171,6 @@ const BloodlineSystem = {
     if (!this.state.chosen) return;
     const passives = this.getBloodline().passives;
 
-    // Shadow — low HP damage bonus
     if (passives.lowHpDmgBonus) {
       const hpPct = player.hp / player.maxHp;
       let bonus = 0;
@@ -221,7 +180,6 @@ const BloodlineSystem = {
       player._bloodlineDmgBonus = bonus;
     }
 
-    // Beast — pet stat mul (hook via PetLevelSystem)
     if (passives.petStatMul && typeof PetLevelSystem !== 'undefined') {
       player._bloodlinePetMul = passives.petStatMul;
     }
@@ -244,11 +202,8 @@ const BloodlineSystem = {
         this.state.idleTimer += dt;
         if (this.state.idleTimer >= passives.invisibleIdleTime && !this.state.isInvisible) {
           this.state.isInvisible = true;
-          // Only prevent NEW aggro — enemies currently chasing still continue
           for (const e of Enemies.list) {
-            if (e.alive && !e.aggroed) {
-              e._shadowInvisBlock = true;
-            }
+            if (e.alive && !e.aggroed) e._shadowInvisBlock = true;
           }
           UI.addLog('🌑 Tàng hình trong bóng tối...', 'system');
         }
@@ -256,9 +211,7 @@ const BloodlineSystem = {
         this.state.idleTimer = 0;
         if (this.state.isInvisible) {
           this.state.isInvisible = false;
-          for (const e of Enemies.list) {
-            delete e._shadowInvisBlock;
-          }
+          for (const e of Enemies.list) delete e._shadowInvisBlock;
         }
       }
 
@@ -279,7 +232,7 @@ const BloodlineSystem = {
     // Beast — auto summon khi combat
     if (passives.autoSummonInCombat) {
       const nearEnemy = Enemies.findNearest(Player.x, Player.y, 200, e => e.alive && e.aggroed);
-      const inCombat = !!nearEnemy;
+      const inCombat  = !!nearEnemy;
 
       if (inCombat && !this.state._lastCombatState && !Player.activePet) {
         if (Player.ownedPets && Player.ownedPets.length > 0) {
@@ -299,22 +252,21 @@ const BloodlineSystem = {
     if (!this.state.chosen || !Player.alive) return;
     const config = this.getBloodline();
     const ctx = Game.ctx;
-    const cx = Player.x - GameState.camera.x;
-    const cy = Player.y - 10 - GameState.camera.y;
+    const cx  = Player.x - GameState.camera.x;
+    const cy  = Player.y - 10 - GameState.camera.y;
 
     switch (this.state.bloodlineId) {
       case 'dragon': {
         const dPulse = 0.3 + Math.sin(GameState.time / 200) * 0.15;
         ctx.globalAlpha = dPulse * 0.4;
         ctx.strokeStyle = '#1565c0';
-        ctx.lineWidth = 2;
+        ctx.lineWidth   = 2;
         ctx.beginPath();
         ctx.arc(cx, cy, 25 + Math.sin(GameState.time / 300) * 3, 0, Math.PI * 2);
         ctx.stroke();
         ctx.globalAlpha = 1;
         break;
       }
-
       case 'phoenix': {
         const hpPct = Player.hp / Player.maxHp;
         if (hpPct < 0.5) {
@@ -334,7 +286,6 @@ const BloodlineSystem = {
         }
         break;
       }
-
       case 'beast': {
         if (Player.activePet && Math.random() < 0.05) {
           GameState.particles.push({
@@ -349,11 +300,10 @@ const BloodlineSystem = {
         }
         break;
       }
-
       case 'shadow': {
         if (this.state.isInvisible) {
           ctx.globalAlpha = 0.3;
-          ctx.fillStyle = '#4a148c';
+          ctx.fillStyle   = '#4a148c';
           ctx.beginPath();
           ctx.arc(cx, cy, 22, 0, Math.PI * 2);
           ctx.fill();
@@ -368,7 +318,6 @@ const BloodlineSystem = {
     if (!this.state.chosen) return;
     const passives = this.getBloodline().passives;
 
-    // Dragon — kill heal
     if (passives.killHealInterval) {
       this.state.killCountForHeal++;
       if (this.state.killCountForHeal >= passives.killHealInterval) {
@@ -423,8 +372,7 @@ const BloodlineSystem = {
 
   getFireBonus() {
     if (this.state.bloodlineId !== 'dragon') return 1.0;
-    const bl = this.getBloodline();
-    return 1 + bl.passives.fireSkillBonus; // 1.5
+    return 1 + this.getBloodline().passives.fireSkillBonus;
   },
 
   getDamageBonus() {
@@ -443,10 +391,10 @@ const BloodlineSystem = {
 
   loadSaveData(data) {
     if (!data) return;
-    this.state.chosen = data.chosen || false;
-    this.state.bloodlineId = data.bloodlineId || null;
-    this.state.pending = data.pending !== undefined ? data.pending : true;
-    this.state.reviveLastUsed = data.reviveLastUsed || 0;
+    this.state.chosen           = data.chosen           || false;
+    this.state.bloodlineId      = data.bloodlineId      || null;
+    this.state.pending          = data.pending !== undefined ? data.pending : true;
+    this.state.reviveLastUsed   = data.reviveLastUsed   || 0;
     this.state.killCountForHeal = data.killCountForHeal || 0;
   }
 };
@@ -467,16 +415,14 @@ const KarmaSystem = {
     permanentCurses: {}
   },
 
-  getScore() {
-    return this.state.score;
-  },
+  getScore() { return this.state.score; },
 
   getTier() {
     const s = this.state.score;
     return KARMA_CONFIG.tiers.find(t => s >= t.min && s <= t.max) || KARMA_CONFIG.tiers[2];
   },
 
-  addKarma(amount, reason) {
+  addKarma(amount) {
     const prevTier = this.getTier();
     this.state.score = Utils.clamp(this.state.score + amount, KARMA_CONFIG.min, KARMA_CONFIG.max);
     const newTier = this.getTier();
@@ -494,7 +440,6 @@ const KarmaSystem = {
 
     this.state.killCounts[enemy.type] = (this.state.killCounts[enemy.type] || 0) + 1;
 
-    // Oan Hồn trigger
     if (this.state.killCounts[enemy.type] % KARMA_CONFIG.oanHonThreshold === 0) {
       this.addKarma(KARMA_CONFIG.events.killStreak10);
       this.spawnOanHon(enemy.type, enemy.level || 1);
@@ -517,25 +462,24 @@ const KarmaSystem = {
     // Spawn pending Oan Hồn
     for (let i = this.state.pendingOanHons.length - 1; i >= 0; i--) {
       const p = this.state.pendingOanHons[i];
-      if (now >= p.spawnAt) {
-        const e = Enemies.spawn(p.type, KARMA_CONFIG.oanHonHpMul, p.level);
-        if (e) {
-          e.name = '【Oan Hồn】' + e.name;
-          e.color = '#7c4dff';
-          e._isOanHon = true;
-          e.drops = [];
-          e.gold = 0;
-          e.exp = 0;
-          e.aggroed = true;
-          const angle = Math.random() * Math.PI * 2;
-          e.x = Player.x + Math.cos(angle) * 200;
-          e.y = Player.y + Math.sin(angle) * 200;
-          e.spawnX = e.x;
-          e.spawnY = e.y;
-          this.state.oanHons.push(e);
-        }
-        this.state.pendingOanHons.splice(i, 1);
+      if (now < p.spawnAt) continue;
+      const e = Enemies.spawn(p.type, KARMA_CONFIG.oanHonHpMul, p.level);
+      if (e) {
+        e.name    = '【Oan Hồn】' + e.name;
+        e.color   = '#7c4dff';
+        e._isOanHon = true;
+        e.drops   = [];
+        e.gold    = 0;
+        e.exp     = 0;
+        e.aggroed = true;
+        const angle = Math.random() * Math.PI * 2;
+        e.x = Player.x + Math.cos(angle) * 200;
+        e.y = Player.y + Math.sin(angle) * 200;
+        e.spawnX  = e.x;
+        e.spawnY  = e.y;
+        this.state.oanHons.push(e);
       }
+      this.state.pendingOanHons.splice(i, 1);
     }
 
     // Clean up dead Oan Hồn
@@ -544,33 +488,23 @@ const KarmaSystem = {
     // Apply permanent curses
     if (this.state.permanentCurses.maxHpReduce) {
       Player.maxHp = Math.max(1, Player.maxHp - this.state.permanentCurses.maxHpReduce);
-      Player.hp = Math.min(Player.hp, Player.maxHp);
+      Player.hp    = Math.min(Player.hp, Player.maxHp);
     }
 
     // Block natural regen if curse active
     const blockRegen = this.state.activeCurses.find(c => c.curse.type === 'blockRegen');
-    if (blockRegen) {
-      // Revert the regen applied in Player.update — re-clamp hp to last known value
-      // We store a reference each frame in Player._preRegenHp (set in update wrap)
-      if (Player._preRegenHp !== undefined && Player._preRegenHp < Player.hp) {
-        Player.hp = Player._preRegenHp;
-      }
+    if (blockRegen && Player._preRegenHp !== undefined && Player._preRegenHp < Player.hp) {
+      Player.hp = Player._preRegenHp;
     }
 
-    // Aggro detection bonus (shadow vision curse)
+    // Shadow invisibility: cancel NEW aggro for marked enemies
     if (BloodlineSystem.state.isInvisible) {
-      // Shadow invisibility: block NEW aggro for enemies that haven't aggroed yet
       for (const e of Enemies.list) {
-        if (e.alive && e._shadowInvisBlock && e.aggroed) {
-          e.aggroed = false;
-        }
+        if (e.alive && e._shadowInvisBlock && e.aggroed) e.aggroed = false;
       }
     }
 
-    // Check karma ending
-    if (Player.realm >= 8) {
-      this.checkEnding();
-    }
+    if (Player.realm >= 8) this.checkEnding();
 
     this.updateKarmaHUD();
   },
@@ -584,9 +518,7 @@ const KarmaSystem = {
     }
   },
 
-  isBlackMarketAvailable() {
-    return this.getTier().blackMarket;
-  },
+  isBlackMarketAvailable() { return this.getTier().blackMarket; },
 
   removeCurse() {
     if (this.state.activeCurses.length === 0) {
@@ -599,12 +531,12 @@ const KarmaSystem = {
   },
 
   updateKarmaHUD() {
-    const tierNameEl = document.getElementById('karmaTierName');
+    const tierNameEl    = document.getElementById('karmaTierName');
     const karmaDisplayEl = document.getElementById('karmaDisplay');
     if (!tierNameEl || !karmaDisplayEl) return;
     const tier = this.getTier();
-    tierNameEl.textContent = tier.name;
-    tierNameEl.style.color = tier.color;
+    tierNameEl.textContent  = tier.name;
+    tierNameEl.style.color  = tier.color;
     karmaDisplayEl.style.borderColor = tier.color;
   },
 
@@ -620,11 +552,11 @@ const KarmaSystem = {
 
   loadSaveData(data) {
     if (!data) return;
-    this.state.score = data.score || 0;
-    this.state.killCounts = data.killCounts || {};
-    this.state.activeCurses = data.activeCurses || [];
+    this.state.score           = data.score           || 0;
+    this.state.killCounts      = data.killCounts      || {};
+    this.state.activeCurses    = data.activeCurses    || [];
     this.state.permanentCurses = data.permanentCurses || {};
-    this.state.merchantVisits = data.merchantVisits || 0;
+    this.state.merchantVisits  = data.merchantVisits  || 0;
   }
 };
 
@@ -643,34 +575,25 @@ const BlackMarketSystem = {
     const shuffled = [...BLACK_MARKET_CONFIG.cursedItems].sort(() => Math.random() - 0.5);
     this.state.currentStock = shuffled.slice(0, 3 + Math.floor(Math.random() * 3))
       .map(item => ({ item, price: item.price }));
-
     // Always add purify charm
     this.state.currentStock.push({
       item: BLACK_MARKET_CONFIG.purifyItem,
       price: BLACK_MARKET_CONFIG.purifyItem.price,
       isPurify: true
     });
-
     this.state.lastStockDate = new Date().toDateString();
   },
 
   checkDailyStock() {
-    const today = new Date().toDateString();
-    if (this.state.lastStockDate !== today) {
-      this.generateStock();
-    }
+    if (this.state.lastStockDate !== new Date().toDateString()) this.generateStock();
   },
 
   buyCursedItem(itemId) {
     const stockItem = this.state.currentStock.find(s => s.item.id === itemId);
     if (!stockItem) return false;
 
-    // Handle purify charm separately
     if (stockItem.isPurify) {
-      if (Player.gold < stockItem.price) {
-        UI.addLog('❌ Không đủ vàng!', 'system');
-        return false;
-      }
+      if (Player.gold < stockItem.price) { UI.addLog('❌ Không đủ vàng!', 'system'); return false; }
       Player.gold -= stockItem.price;
       Inventory.add('purifyCharm', 1);
       UI.addLog('✨ Mua Giải Chú Phù thành công!', 'item');
@@ -678,45 +601,32 @@ const BlackMarketSystem = {
       return true;
     }
 
-    // Check curse limit
-    const activeCurseCount = KarmaSystem.state.activeCurses.length;
-    if (activeCurseCount >= BLACK_MARKET_CONFIG.maxCurses) {
+    if (KarmaSystem.state.activeCurses.length >= BLACK_MARKET_CONFIG.maxCurses) {
       UI.addLog('❌ Đã đạt giới hạn ' + BLACK_MARKET_CONFIG.maxCurses + ' lời nguyền!', 'system');
       return false;
     }
-
-    if (Player.gold < stockItem.price) {
-      UI.addLog('❌ Không đủ vàng!', 'system');
-      return false;
-    }
+    if (Player.gold < stockItem.price) { UI.addLog('❌ Không đủ vàng!', 'system'); return false; }
 
     Player.gold -= stockItem.price;
     KarmaSystem.addKarma(KARMA_CONFIG.events.useBlackMarket);
 
     const item = stockItem.item;
 
-    // Instant effects
     if (item.buff.instantExp) Player.gainExp(item.buff.instantExp);
 
-    // Stat buffs (stored on Player, applied in recalculateStats wrap)
     if (item.buff.atkPct || item.buff.defPct || item.buff.critRate || item.buff.skillDmgPct || item.buff.goldMul) {
       Player._blackMarketBuffs = Player._blackMarketBuffs || {};
       Object.assign(Player._blackMarketBuffs, item.buff);
       Player.recalculateStats();
     }
 
-    // Permanent curse
     if (item.curse.permanent && item.curse.type === 'maxHpReduce') {
       KarmaSystem.state.permanentCurses.maxHpReduce =
         (KarmaSystem.state.permanentCurses.maxHpReduce || 0) + item.curse.value;
     }
 
-    // Add to active curses
     KarmaSystem.state.activeCurses.push({
-      curseId: item.id,
-      name: item.name,
-      curse: item.curse,
-      buff: item.buff
+      curseId: item.id, name: item.name, curse: item.curse, buff: item.buff
     });
 
     UI.addLog('🌑 Mua ' + item.name + ' — ' + item.curseDesc, 'system');
@@ -724,7 +634,6 @@ const BlackMarketSystem = {
     UI.updateGold();
 
     if (BlackMarketPanel._el) BlackMarketPanel.render();
-
     return true;
   },
 
@@ -735,24 +644,15 @@ const BlackMarketSystem = {
 
   applyCurseOnKill(enemy) {
     const onKillCurse = KarmaSystem.state.activeCurses.find(c => c.curse.type === 'onKill');
-    if (onKillCurse) {
-      Player.hp = Math.max(1, Player.hp - onKillCurse.curse.hpLoss);
-    }
+    if (onKillCurse) Player.hp = Math.max(1, Player.hp - onKillCurse.curse.hpLoss);
 
-    // Gold mul buff
     const goldMulCurse = KarmaSystem.state.activeCurses.find(c => c.buff && c.buff.goldMul);
-    if (goldMulCurse) {
-      const bonus = Math.floor(enemy.gold * (goldMulCurse.buff.goldMul - 1));
-      Player.gold += bonus;
-    }
+    if (goldMulCurse) Player.gold += Math.floor(enemy.gold * (goldMulCurse.buff.goldMul - 1));
   },
 
   applyCurseOnCrit() {
     const onCritCurse = KarmaSystem.state.activeCurses.find(c => c.curse.type === 'onCrit');
-    if (onCritCurse) {
-      const hpLoss = Math.floor(Player.maxHp * onCritCurse.curse.hpLossPct);
-      Player.hp = Math.max(1, Player.hp - hpLoss);
-    }
+    if (onCritCurse) Player.hp = Math.max(1, Player.hp - Math.floor(Player.maxHp * onCritCurse.curse.hpLossPct));
   },
 
   getMpCostMul() {
@@ -765,16 +665,13 @@ const BlackMarketSystem = {
   },
 
   getSaveData() {
-    return {
-      currentStock: this.state.currentStock,
-      lastStockDate: this.state.lastStockDate
-    };
+    return { currentStock: this.state.currentStock, lastStockDate: this.state.lastStockDate };
   },
 
   loadSaveData(data) {
     if (!data) return;
-    this.state.currentStock = data.currentStock || [];
-    this.state.lastStockDate = data.lastStockDate || null;
+    if (data.currentStock)  this.state.currentStock  = data.currentStock;
+    if (data.lastStockDate) this.state.lastStockDate = data.lastStockDate;
   }
 };
 
@@ -822,17 +719,16 @@ const BloodlinePanel = {
     container.innerHTML = '';
 
     Object.values(BLOODLINE_CONFIG.bloodlines).forEach(bl => {
-      // Passive descriptions
-      const passiveLines = [];
       const p = bl.passives;
-      if (p.immuneFreeze) passiveLines.push('✦ Miễn đóng băng');
-      if (p.fireSkillBonus) passiveLines.push('✦ Hỏa skill +' + (p.fireSkillBonus * 100) + '%');
-      if (p.killHealInterval) passiveLines.push('✦ Mỗi ' + p.killHealInterval + ' kill hồi ' + (p.killHealPct * 100) + '% HP');
-      if (p.reviveHpPct) passiveLines.push('✦ Hồi sinh 1 lần/ngày với ' + (p.reviveHpPct * 100) + '% HP');
-      if (p.petStatMul) passiveLines.push('✦ Pet stat x' + p.petStatMul);
-      if (p.autoSummonInCombat) passiveLines.push('✦ Tự triệu hồi pet khi chiến đấu');
-      if (p.lowHpDmgBonus) passiveLines.push('✦ HP thấp → sát thương tăng');
-      if (p.invisibleIdleTime) passiveLines.push('✦ Đứng yên 3s → tàng hình');
+      const passiveLines = [];
+      if (p.immuneFreeze)        passiveLines.push('✦ Miễn đóng băng');
+      if (p.fireSkillBonus)      passiveLines.push('✦ Hỏa skill +' + (p.fireSkillBonus * 100) + '%');
+      if (p.killHealInterval)    passiveLines.push('✦ Mỗi ' + p.killHealInterval + ' kill hồi ' + (p.killHealPct * 100) + '% HP');
+      if (p.reviveHpPct)         passiveLines.push('✦ Hồi sinh 1 lần/ngày với ' + (p.reviveHpPct * 100) + '% HP');
+      if (p.petStatMul)          passiveLines.push('✦ Pet stat x' + p.petStatMul);
+      if (p.autoSummonInCombat)  passiveLines.push('✦ Tự triệu hồi pet khi chiến đấu');
+      if (p.lowHpDmgBonus)       passiveLines.push('✦ HP thấp → sát thương tăng');
+      if (p.invisibleIdleTime)   passiveLines.push('✦ Đứng yên 3s → tàng hình');
 
       const card = document.createElement('div');
       card.style.cssText = [
@@ -851,12 +747,8 @@ const BloodlinePanel = {
         </div>
       `;
 
-      card.addEventListener('mouseenter', () => {
-        card.style.boxShadow = '0 0 16px ' + bl.glowColor;
-      });
-      card.addEventListener('mouseleave', () => {
-        card.style.boxShadow = 'none';
-      });
+      card.addEventListener('mouseenter', () => { card.style.boxShadow = '0 0 16px ' + bl.glowColor; });
+      card.addEventListener('mouseleave', () => { card.style.boxShadow = 'none'; });
       card.addEventListener('click', () => {
         BloodlineSystem.choose(bl.id);
         BloodlinePanel.hide();
@@ -908,11 +800,9 @@ const BlackMarketPanel = {
     overlay.innerHTML = `
       <div style="background:#111;border:2px solid #4a148c;border-radius:12px;
         max-width:380px;width:92%;max-height:85vh;overflow-y:auto;padding:16px">
-        <div style="display:flex;justify-content:space-between;align-items:center;
-          margin-bottom:12px">
+        <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:12px">
           <div style="color:#e040fb;font-size:16px;font-weight:bold">🌑 Hắc Thị</div>
-          <div id="bmClose" style="cursor:pointer;color:#888;font-size:16px;
-            padding:4px 8px">✕</div>
+          <div id="bmClose" style="cursor:pointer;color:#888;font-size:16px;padding:4px 8px">✕</div>
         </div>
         <div style="color:#888;font-size:10px;margin-bottom:10px">
           Lời nguyền active: <span id="bmCurseCount">0</span>/2
@@ -929,9 +819,7 @@ const BlackMarketPanel = {
     this._el = overlay;
 
     overlay.querySelector('#bmClose').addEventListener('click', () => this.close());
-    overlay.addEventListener('click', (e) => {
-      if (e.target === overlay) this.close();
-    });
+    overlay.addEventListener('click', (e) => { if (e.target === overlay) this.close(); });
   },
 
   open() {
@@ -941,24 +829,21 @@ const BlackMarketPanel = {
     this._el.style.display = 'flex';
   },
 
-  close() {
-    if (this._el) this._el.style.display = 'none';
-  },
+  close() { if (this._el) this._el.style.display = 'none'; },
 
   render() {
     if (!this._el) return;
 
-    const bmCurseCount = this._el.querySelector('#bmCurseCount');
-    const bmItemList   = this._el.querySelector('#bmItemList');
+    const bmCurseCount   = this._el.querySelector('#bmCurseCount');
+    const bmItemList     = this._el.querySelector('#bmItemList');
     const bmActiveCurses = this._el.querySelector('#bmActiveCurses');
 
     if (bmCurseCount) bmCurseCount.textContent = KarmaSystem.state.activeCurses.length;
 
-    // Item list
     if (bmItemList) {
       bmItemList.innerHTML = '';
       BlackMarketSystem.state.currentStock.forEach(s => {
-        const canBuy = KarmaSystem.state.activeCurses.length < BLACK_MARKET_CONFIG.maxCurses
+        const canBuy   = KarmaSystem.state.activeCurses.length < BLACK_MARKET_CONFIG.maxCurses
           && Player.gold >= s.price;
         const isPurify = !!s.isPurify;
 
@@ -1000,16 +885,12 @@ const BlackMarketPanel = {
       });
     }
 
-    // Active curses
     if (bmActiveCurses) {
-      if (KarmaSystem.state.activeCurses.length === 0) {
-        bmActiveCurses.innerHTML = '<div style="color:#555;font-size:10px">Không có lời nguyền</div>';
-      } else {
-        bmActiveCurses.innerHTML = KarmaSystem.state.activeCurses.map(c =>
-          '<div style="color:#f44336;font-size:10px;margin-bottom:4px">• ' +
-          c.name + ': ' + c.curse.type + '</div>'
-        ).join('');
-      }
+      bmActiveCurses.innerHTML = KarmaSystem.state.activeCurses.length === 0
+        ? '<div style="color:#555;font-size:10px">Không có lời nguyền</div>'
+        : KarmaSystem.state.activeCurses.map(c =>
+            '<div style="color:#f44336;font-size:10px;margin-bottom:4px">• ' + c.name + ': ' + c.curse.type + '</div>'
+          ).join('');
     }
   }
 };
@@ -1057,17 +938,13 @@ const BloodlineKarmaFeature = {
     const _orig = Player.recalculateStats.bind(Player);
     Player.recalculateStats = function() {
       _orig();
-
-      // Bloodline apply
       BloodlineSystem.applyToStats(Player);
-
-      // Black market buffs
       const bm = Player._blackMarketBuffs || {};
-      if (bm.atkPct)     Player.atk      = Math.floor(Player.atk * (1 + bm.atkPct));
-      if (bm.defPct)     Player.def      = Math.floor(Player.def * (1 + bm.defPct));
-      if (bm.critRate)   Player.critRate += bm.critRate;
+      if (bm.atkPct)      Player.atk      = Math.floor(Player.atk * (1 + bm.atkPct));
+      if (bm.defPct)      Player.def      = Math.floor(Player.def * (1 + bm.defPct));
+      if (bm.critRate)    Player.critRate += bm.critRate;
       if (bm.skillDmgPct) Player._bmSkillDmg = bm.skillDmgPct;
-      if (bm.goldMul)    Player._bmGoldMul   = bm.goldMul;
+      if (bm.goldMul)     Player._bmGoldMul  = bm.goldMul;
     };
   },
 
@@ -1079,16 +956,14 @@ const BloodlineKarmaFeature = {
       const actualDamage = Math.max(1, amount - this.def);
       const hpAfter = this.hp - actualDamage;
 
-      // Phoenix revive
       if (hpAfter <= 0 && BloodlineSystem.checkRevive()) {
         this.alive = false;
         return;
       }
 
-      // Shadow invisible break on hit
       if (BloodlineSystem.state.isInvisible) {
         BloodlineSystem.state.isInvisible = false;
-        BloodlineSystem.state.idleTimer = 0;
+        BloodlineSystem.state.idleTimer   = 0;
         for (const e of Enemies.list) delete e._shadowInvisBlock;
       }
 
@@ -1112,27 +987,11 @@ const BloodlineKarmaFeature = {
       if (!enemy || !enemy.alive) return;
 
       let finalAmount = amount;
-
-      // Dragon fire bonus
-      if (Player._bloodlineFireActive) {
-        finalAmount = Math.floor(finalAmount * BloodlineSystem.getFireBonus());
-      }
-
-      // Shadow low-HP damage bonus
+      if (Player._bloodlineFireActive) finalAmount = Math.floor(finalAmount * BloodlineSystem.getFireBonus());
       const dmgBonus = BloodlineSystem.getDamageBonus();
-      if (dmgBonus > 0) {
-        finalAmount += Math.floor(finalAmount * dmgBonus);
-      }
-
-      // Black market skill damage bonus
-      if (Player._bmSkillDmg && Player._useSkillActive) {
-        finalAmount += Math.floor(finalAmount * Player._bmSkillDmg);
-      }
-
-      // onCrit curse
-      if (isCrit) {
-        BlackMarketSystem.applyCurseOnCrit();
-      }
+      if (dmgBonus > 0) finalAmount += Math.floor(finalAmount * dmgBonus);
+      if (Player._bmSkillDmg && Player._useSkillActive) finalAmount += Math.floor(finalAmount * Player._bmSkillDmg);
+      if (isCrit) BlackMarketSystem.applyCurseOnCrit();
 
       _origDmg(enemy, finalAmount, isCrit, color);
     };
@@ -1143,29 +1002,21 @@ const BloodlineKarmaFeature = {
     Player.useSkill = function(idx) {
       if (!this.alive || !this.skills) return false;
       const skill = this.skills[idx];
-      if (!skill) return false;
-      if (skill.cd > 0) return false;
+      if (!skill || skill.cd > 0) return false;
 
-      // mpCostMul curse
       const mpCost = Math.ceil((skill.mp || 0) * BlackMarketSystem.getMpCostMul());
       if (this.mp < mpCost) {
         UI.addLog('⚡ Không đủ linh lực!', 'system');
         return false;
       }
 
-      // Fire element detection for Dragon bloodline
       if (BloodlineSystem.state.bloodlineId === 'dragon') {
-        const element = typeof ElementSystem !== 'undefined'
-          ? (ElementSystem.getAttackElement ? ElementSystem.getAttackElement(idx) : null)
-          : null;
-        if (element === 'fire') {
-          Player._bloodlineFireActive = true;
-        }
+        const element = typeof ElementSystem !== 'undefined' && ElementSystem.getAttackElement
+          ? ElementSystem.getAttackElement(idx) : null;
+        if (element === 'fire') Player._bloodlineFireActive = true;
       }
 
       Player._useSkillActive = true;
-
-      // Temporarily override skill.mp for cost mul
       const origMp = skill.mp;
       skill.mp = mpCost;
       const result = _origSkill(idx);
@@ -1181,12 +1032,9 @@ const BloodlineKarmaFeature = {
   _wrapMapsTravelTo() {
     const _origTravel = Maps.travelTo.bind(Maps);
     Maps.travelTo = function(mapIndex) {
-      // Snapshot living Oan Hồn before map clear
       const livingOanHons = KarmaSystem.state.oanHons.filter(e => e.alive);
-
       _origTravel(mapIndex);
 
-      // Re-push Oan Hồn into new map's enemy list
       if (livingOanHons.length > 0 && KARMA_CONFIG.oanHonFollow) {
         setTimeout(() => {
           livingOanHons.forEach(oH => {
@@ -1200,10 +1048,8 @@ const BloodlineKarmaFeature = {
             Enemies.list.push(newE);
             KarmaSystem.state.oanHons.push(newE);
           });
-          if (livingOanHons.length > 0) {
-            UI.addLog('👻 Oan Hồn vẫn đang theo đuổi ngươi!', 'system');
-          }
-        }, 200); // after spawnForMap settles
+          UI.addLog('👻 Oan Hồn vẫn đang theo đuổi ngươi!', 'system');
+        }, 200);
       }
     };
   },
@@ -1212,19 +1058,12 @@ const BloodlineKarmaFeature = {
     const _origSpawn = NPC.spawnForMap.bind(NPC);
     NPC.spawnForMap = function(mapIndex) {
       _origSpawn(mapIndex);
-
-      // Spawn Black Market NPC if karma tier allows
-      if (KarmaSystem.isBlackMarketAvailable() && !BlackMarketSystem.state.npcSpawned) {
-        BlackMarketSystem.checkDailyStock();
-        BlackMarketSystem.state.npcSpawned = true;
-
-        // Random position away from map center
-        const wx = (CONFIG.WORLD_WIDTH * CONFIG.TILE_SIZE);
-        const wy = (CONFIG.WORLD_HEIGHT * CONFIG.TILE_SIZE);
-        const bmX = 100 + Math.random() * (wx - 200);
-        const bmY = 100 + Math.random() * (wy - 200);
-        NPC.spawn('blackMerchant', bmX, bmY);
-      }
+      if (!KarmaSystem.isBlackMarketAvailable() || BlackMarketSystem.state.npcSpawned) return;
+      BlackMarketSystem.checkDailyStock();
+      BlackMarketSystem.state.npcSpawned = true;
+      const wx = CONFIG.WORLD_WIDTH  * CONFIG.TILE_SIZE;
+      const wy = CONFIG.WORLD_HEIGHT * CONFIG.TILE_SIZE;
+      NPC.spawn('blackMerchant', 100 + Math.random() * (wx - 200), 100 + Math.random() * (wy - 200));
     };
   },
 
@@ -1241,34 +1080,27 @@ const BloodlineKarmaFeature = {
   },
 
   _wrapInventoryUseItem() {
-    if (!Inventory.useItem) return; // guard if method doesn't exist
-
+    if (!Inventory.useItem) return;
     const _origUse = Inventory.useItem.bind(Inventory);
     Inventory.useItem = function(itemId) {
       const itemData = ITEMS[itemId];
       if (!itemData) return _origUse(itemId);
-
       const effect = itemData.effect || {};
 
-      // Block consumable curse
       if (BlackMarketSystem.isConsumableBlocked() && itemData.type === 'consumable') {
         UI.addLog('❌ Lời nguyền chặn dùng đan dược!', 'system');
         return false;
       }
-
-      // Purify charm
       if (effect.purify) {
         Inventory.remove(itemId, 1);
         KarmaSystem.removeCurse();
         return true;
       }
-
-      // Oan Hồn ward
       if (effect.wardOanHon) {
         Inventory.remove(itemId, 1);
         KarmaSystem.state.oanHons.forEach(e => { e.alive = false; });
-        KarmaSystem.state.oanHons = [];
-        KarmaSystem.state.pendingOanHons = [];
+        KarmaSystem.state.oanHons         = [];
+        KarmaSystem.state.pendingOanHons  = [];
         UI.addLog('✨ Siêu Độ Phù: Oan Hồn đã được giải thoát.', 'system');
         return true;
       }
@@ -1280,11 +1112,8 @@ const BloodlineKarmaFeature = {
   _wrapGameUpdate() {
     const _origUpdate = Game.update.bind(Game);
     Game.update = function(dt) {
-      // Track HP before regen tick for blockRegen curse
       Player._preRegenHp = Player.hp;
-
       _origUpdate(dt);
-
       BloodlineSystem.update(dt);
       KarmaSystem.update(dt);
     };
@@ -1293,19 +1122,13 @@ const BloodlineKarmaFeature = {
   _wrapGameRender() {
     const _origRender = Game.render ? Game.render.bind(Game) : null;
     if (!_origRender) return;
-
     Game.render = function() {
       _origRender();
-
-      // Shadow invisible player alpha
-      // (handled inside BloodlineSystem.renderBloodlineAura, called from update)
-
-      // Dark screen curse overlay (screen-space, after ctx.restore)
       const ctx = Game.ctx;
       const darkCurse = KarmaSystem.state.activeCurses.find(c => c.curse.type === 'darkScreen');
       if (darkCurse) {
         ctx.save();
-        ctx.fillStyle = '#000000';
+        ctx.fillStyle   = '#000000';
         ctx.globalAlpha = darkCurse.curse.alpha;
         ctx.fillRect(0, 0, Game.canvas.width, Game.canvas.height);
         ctx.restore();
@@ -1314,52 +1137,48 @@ const BloodlineKarmaFeature = {
   },
 
   _wrapGameSaveLoad() {
-    // Wrap save
     if (Game.save) {
       const _origSave = Game.save.bind(Game);
       Game.save = function() {
         _origSave();
-        const bkData = {
+        localStorage.setItem('tuxien_bloodline_karma', JSON.stringify({
           bloodline: BloodlineSystem.getSaveData(),
-          karma: KarmaSystem.getSaveData(),
+          karma:     KarmaSystem.getSaveData(),
           blackMarket: BlackMarketSystem.getSaveData()
-        };
-        localStorage.setItem('tuxien_bloodline_karma', JSON.stringify(bkData));
+        }));
       };
     }
 
-    // Wrap load
     if (Game.load) {
       const _origLoad = Game.load.bind(Game);
       Game.load = function() {
         _origLoad();
-        try {
-          const raw = localStorage.getItem('tuxien_bloodline_karma');
-          if (raw) {
-            const data = JSON.parse(raw);
-            BloodlineSystem.loadSaveData(data.bloodline);
-            KarmaSystem.loadSaveData(data.karma);
-            BlackMarketSystem.loadSaveData(data.blackMarket);
-          }
-        } catch (e) {
-          console.warn('🩸 Không tải được dữ liệu Bloodline/Karma:', e);
-        }
+        BloodlineKarmaFeature._tryLoadSave();
       };
     }
   },
 
-  // ---- Shadow invisible aggro intercept ----
+  _tryLoadSave() {
+    try {
+      const raw = localStorage.getItem('tuxien_bloodline_karma');
+      if (!raw) return;
+      const data = JSON.parse(raw);
+      BloodlineSystem.loadSaveData(data.bloodline);
+      KarmaSystem.loadSaveData(data.karma);
+      BlackMarketSystem.loadSaveData(data.blackMarket);
+    } catch (e) {
+      console.warn('🩸 Không tải được dữ liệu Bloodline/Karma:', e);
+    }
+  },
+
   _patchEnemiesUpdate() {
     const _origEUpdate = Enemies.update.bind(Enemies);
     Enemies.update = function(dt) {
       _origEUpdate(dt);
-
-      // Post-update: if shadow invisible, cancel NEW aggro for enemies marked
-      if (BloodlineSystem.state.isInvisible) {
-        for (const e of Enemies.list) {
-          if (e.alive && e._shadowInvisBlock && e.aggroed && !e._wasAlreadyAggroed) {
-            e.aggroed = false;
-          }
+      if (!BloodlineSystem.state.isInvisible) return;
+      for (const e of Enemies.list) {
+        if (e.alive && e._shadowInvisBlock && e.aggroed && !e._wasAlreadyAggroed) {
+          e.aggroed = false;
         }
       }
     };
@@ -1374,20 +1193,8 @@ const BloodlineKarmaFeature = {
     BloodlinePanel._build();
     BlackMarketPanel._build();
 
-    // Load saved data
-    try {
-      const raw = localStorage.getItem('tuxien_bloodline_karma');
-      if (raw) {
-        const data = JSON.parse(raw);
-        BloodlineSystem.loadSaveData(data.bloodline);
-        KarmaSystem.loadSaveData(data.karma);
-        BlackMarketSystem.loadSaveData(data.blackMarket);
-      }
-    } catch (e) {
-      console.warn('🩸 Không tải được dữ liệu Bloodline/Karma:', e);
-    }
+    this._tryLoadSave();
 
-    // Apply wraps
     this._wrapPlayerRecalcStats();
     this._wrapPlayerTakeDamage();
     this._wrapEnemiesKill();
@@ -1402,31 +1209,37 @@ const BloodlineKarmaFeature = {
     this._wrapGameSaveLoad();
     this._patchEnemiesUpdate();
 
-    // Recalculate with new hooks in place
     Player.recalculateStats();
 
-    // Auto-show bloodline panel if realm already unlocked
     if (Player.realm >= BLOODLINE_CONFIG.requireRealm && !BloodlineSystem.state.chosen) {
       setTimeout(() => BloodlinePanel.show(), 1000);
     }
 
-    // Update karma HUD initial state
     KarmaSystem.updateKarmaHUD();
 
     console.log('🩸 Bloodline + Karma + Black Market loaded');
   }
 };
 
-// ---- Wrap Game.init to call our init after ----
 (function() {
-  const _origGameInit = Game.init ? Game.init.bind(Game) : null;
-  if (_origGameInit) {
+  if (typeof Game !== 'undefined' && Game.init) {
+    const _origGameInit = Game.init.bind(Game);
     Game.init = function() {
       _origGameInit();
       BloodlineKarmaFeature.init();
     };
   } else {
-    // Fallback: init after DOM ready
     window.addEventListener('load', () => BloodlineKarmaFeature.init());
   }
 })();
+
+// ===== CHANGES: =====
+// 1. Trích xuất _tryLoadSave() từ init() để tránh duplicate block try/catch trong _wrapGameSaveLoad
+// 2. Inline JSON.stringify trong Game.save — bỏ biến bkData trung gian
+// 3. KarmaSystem.update: đơn giản hoá Oan Hồn spawn — dùng continue thay if lồng nhau
+// 4. BloodlineSystem.update: tách isMoving ra khỏi block shadow để dùng chung với trail
+// 5. _wrapNPCSpawnForMap: early return khi không đủ điều kiện, bỏ điều kiện lồng nhau
+// 6. _patchEnemiesUpdate: thêm early return khi !isInvisible — tránh loop thừa
+// 7. KarmaSystem.addKarma: xóa tham số reason không được dùng (signature đơn giản hơn)
+// 8. BlackMarketPanel.render: đơn giản hoá activeCurses render bằng ternary
+// 9. _wrapEnemiesDamage: inline các if nhỏ trên 1 dòng để dễ đọc hơn

@@ -1,5 +1,5 @@
+// ===== FILE: feature_wandering_immortal.js =====
 // ==================== DU TIÊN HỆ THỐNG ====================
-// feature_wandering_immortal.js
 // Mỗi ngày 1-2 Du Tiên xuất hiện ngẫu nhiên trên map trong 30 phút thực.
 // 6 loại Du Tiên: Kiếm Tiên, Văn Tiên, Cuồng Tiên, Dược Tiên, Ma Tiên, Ẩn Tiên
 // FOMO trail: để lại dấu vết sau khi rời đi
@@ -10,21 +10,21 @@ const WanderingImmortal = {
   // ==================== CONFIG ====================
   config: {
     MAX_PER_DAY: 2,
-    DURATION_MS: 30 * 60 * 1000,        // 30 phút thực
-    HINT_DURATION_MS: 5 * 60 * 1000,    // 5 phút dấu hiệu lạ trước khi xuất hiện
-    TRAIL_DURATION_MS: 10 * 60 * 1000,  // 10 phút dấu chân sau khi rời đi
+    DURATION_MS: 30 * 60 * 1000,
+    HINT_DURATION_MS: 5 * 60 * 1000,
+    TRAIL_DURATION_MS: 10 * 60 * 1000,
     INTERACT_RANGE: 90,
-    SPAWN_CHECK_INTERVAL: 60000,        // check mỗi 1 phút
-    HIDDEN_SEARCH_RADIUS: 120,          // bán kính tìm Ẩn Tiên
+    SPAWN_CHECK_INTERVAL: 60000,
+    HIDDEN_SEARCH_RADIUS: 120,
   },
 
   // ==================== STATE ====================
   state: {
     todayCount: 0,
     lastDayReset: 0,
-    active: [],           // Du Tiên đang xuất hiện
-    trails: [],           // Dấu chân đã qua
-    history: [],          // Lịch sử đã gặp (lưu save)
+    active: [],
+    trails: [],
+    history: [],
     challengeActive: null,
     spawnTimer: 0,
     lastSpawnCheck: 0,
@@ -40,7 +40,7 @@ const WanderingImmortal = {
       glowColor: 'rgba(135,206,235,0.4)',
       hint: '⚔️ Có linh khí kiếm đạo thoang thoảng từ hướng đó...',
       dialog: 'Ngươi có duyên gặp ta — Kiếm Tiên lãng du. Ta có thể dạy ngươi một chiêu kiếm pháp bí truyền.',
-      condition: null, // không điều kiện
+      condition: null,
       service: 'teach_skill',
       rewards: [
         { type: 'passive', id: 'sword_intent', name: 'Kiếm Tâm', desc: '+8% sát thương kiếm, +5% crit rate', stats: { critRate: 0.05, atkMul: 0.08 } },
@@ -107,7 +107,7 @@ const WanderingImmortal = {
       glowColor: 'rgba(155,89,182,0.5)',
       hint: '👻 Âm khí nặng nề... có vị tu sĩ tà đạo ẩn náu nơi này. Tiếp cận cẩn thận.',
       dialog: 'Tss... ngươi cũng tìm đến ta sao? Ta Ma Tiên có thể dạy ngươi thuật pháp ngoài Chính Đạo. Mạnh hơn... nhưng có cái giá của nó.',
-      condition: (p) => p.realm >= 2, // Cần Kim Đan Kỳ
+      condition: (p) => p.realm >= 2,
       conditionText: 'Yêu cầu: Kim Đan Kỳ trở lên',
       service: 'teach_skill',
       karmaWarning: true,
@@ -127,7 +127,7 @@ const WanderingImmortal = {
       dialog: 'Ngươi... thực sự nhìn thấy ta được sao? Thú vị. Người có căn cơ như vậy mới xứng nhận điều này.',
       condition: null,
       service: 'teach_skill',
-      isHidden: true, // phải tìm glowing tile
+      isHidden: true,
       rewards: [
         { type: 'passive', id: 'void_walk', name: 'Hư Không Bộ', desc: '+15% tốc độ di chuyển vĩnh viễn', stats: { speedBonus: 0.15 } },
         { type: 'passive', id: 'heaven_eye', name: 'Thiên Nhãn', desc: 'Thấy HP% của tất cả kẻ địch, +5% crit', stats: { heavenEye: true, critRate: 0.05 } },
@@ -149,7 +149,7 @@ const WanderingImmortal = {
   ],
 
   // ==================== PASSIVES STORAGE ====================
-  unlockedPassives: [],  // list of passive ids player đã unlock
+  unlockedPassives: [],
 
   // ==================== INIT ====================
   init() {
@@ -178,14 +178,12 @@ const WanderingImmortal = {
     if (this.state.todayCount >= this.config.MAX_PER_DAY) return;
     if (this.state.active.length > 0) return;
 
-    // 30% chance mỗi lần check
     if (!Utils.chance(0.30)) return;
 
     const keys = Object.keys(this.immortalTypes);
     const typeKey = keys[Utils.randomInt(0, keys.length - 1)];
     const type = this.immortalTypes[typeKey];
 
-    // Check điều kiện cảnh giới
     if (type.condition && !type.condition(Player)) return;
 
     const worldW = CONFIG.WORLD_WIDTH * CONFIG.TILE_SIZE;
@@ -193,11 +191,9 @@ const WanderingImmortal = {
 
     let x, y;
     if (type.isHidden) {
-      // Ẩn Tiên: spawn nhưng không visible, để lại glowing tile
       x = 150 + Math.random() * (worldW - 300);
       y = 150 + Math.random() * (worldH - 300);
     } else {
-      // Spawn ở xa player (> 400px) nhưng trong map
       let tries = 0;
       do {
         x = 150 + Math.random() * (worldW - 300);
@@ -235,36 +231,30 @@ const WanderingImmortal = {
     }
 
     this._saveData();
-    console.log('🧙 Du Tiên spawned:', typeKey, 'at', Math.round(x), Math.round(y));
   },
 
   // ==================== UPDATE ====================
   update(dt) {
     const now = Date.now();
 
-    // Spawn check
     this.state.lastSpawnCheck += dt;
     if (this.state.lastSpawnCheck >= this.config.SPAWN_CHECK_INTERVAL) {
       this.state.lastSpawnCheck = 0;
       this.trySpawn();
     }
 
-    // Update active immortals
     for (let i = this.state.active.length - 1; i >= 0; i--) {
       const immortal = this.state.active[i];
 
-      // Hết thời gian
       if (now >= immortal.expireTime) {
         this._expire(immortal);
         this.state.active.splice(i, 1);
         continue;
       }
 
-      // Check interact range
       const dist = Utils.dist(Player.x, Player.y, immortal.x, immortal.y);
       immortal.canInteract = dist <= this.config.INTERACT_RANGE && immortal.visible;
 
-      // Ẩn Tiên: check nếu player gần glowing tile
       if (immortal.type.isHidden && immortal.glowTile) {
         const tileDist = Utils.dist(Player.x, Player.y, immortal.glowTile.x, immortal.glowTile.y);
         if (tileDist < this.config.HIDDEN_SEARCH_RADIUS) {
@@ -277,26 +267,22 @@ const WanderingImmortal = {
         }
       }
 
-      // Challenge timer
       if (this.state.challengeActive && this.state.challengeActive.immortalId === immortal.id) {
         this._updateChallenge(dt);
       }
     }
 
-    // Update trails
     for (let i = this.state.trails.length - 1; i >= 0; i--) {
       if (now >= this.state.trails[i].expireTime) {
         this.state.trails.splice(i, 1);
       }
     }
 
-    // Update UI indicator
     this._updateHUDIndicator();
   },
 
   // ==================== EXPIRE ====================
   _expire(immortal) {
-    // Để lại dấu chân
     this.state.trails.push({
       x: immortal.x,
       y: immortal.y,
@@ -314,9 +300,7 @@ const WanderingImmortal = {
   render(ctx) {
     const now = Date.now();
 
-    // Render trails (dấu chân mờ)
     for (const trail of this.state.trails) {
-      const age = now - trail.spawnTime;
       const remaining = trail.expireTime - now;
       const alpha = Math.min(0.5, remaining / this.config.TRAIL_DURATION_MS * 0.5);
       const pulse = 0.3 + Math.sin(now / 600) * 0.1;
@@ -324,7 +308,6 @@ const WanderingImmortal = {
       ctx.save();
       ctx.globalAlpha = alpha + pulse * 0.2;
 
-      // Dấu chân glow
       const grad = ctx.createRadialGradient(trail.x, trail.y, 0, trail.x, trail.y, 30);
       grad.addColorStop(0, trail.type.color);
       grad.addColorStop(1, 'transparent');
@@ -333,7 +316,6 @@ const WanderingImmortal = {
       ctx.arc(trail.x, trail.y, 30, 0, Math.PI * 2);
       ctx.fill();
 
-      // Text "Dấu chân"
       ctx.globalAlpha = alpha;
       ctx.fillStyle = trail.type.color;
       ctx.font = 'bold 10px monospace';
@@ -347,10 +329,8 @@ const WanderingImmortal = {
       ctx.restore();
     }
 
-    // Render active immortals
     for (const immortal of this.state.active) {
       if (!immortal.visible) {
-        // Ẩn Tiên: chỉ render glowing tile
         if (immortal.glowTile) {
           this._renderGlowTile(ctx, immortal.glowTile.x, immortal.glowTile.y, now);
         }
@@ -358,12 +338,11 @@ const WanderingImmortal = {
       }
 
       const remaining = immortal.expireTime - now;
-      const urgency = remaining < 5 * 60000; // < 5 phút
+      const urgency = remaining < 5 * 60000;
       const bob = Math.sin(now / 400 + immortal.bobOffset) * 5;
 
       ctx.save();
 
-      // Outer glow aura
       const glowSize = 45 + Math.sin(now / 500) * 8;
       const grad = ctx.createRadialGradient(immortal.x, immortal.y, 0, immortal.x, immortal.y, glowSize);
       grad.addColorStop(0, immortal.type.glowColor);
@@ -373,10 +352,8 @@ const WanderingImmortal = {
       ctx.arc(immortal.x, immortal.y, glowSize, 0, Math.PI * 2);
       ctx.fill();
 
-      // Du Tiên body (pixel-style)
       this._renderImmortalSprite(ctx, immortal, bob, now);
 
-      // Name + timer
       ctx.globalAlpha = 1;
       ctx.fillStyle = urgency ? '#ff6b6b' : immortal.type.color;
       ctx.font = `bold ${urgency ? '12' : '11'}px monospace`;
@@ -388,14 +365,12 @@ const WanderingImmortal = {
       ctx.fillStyle = urgency ? '#ff6b6b' : '#ccc';
       ctx.fillText(`⏱ ${minLeft} phút`, immortal.x, immortal.y - 38 + bob);
 
-      // Interact prompt
       if (immortal.canInteract) {
         ctx.fillStyle = '#ffd700';
         ctx.font = 'bold 14px monospace';
         ctx.fillText('💬 Nói chuyện', immortal.x, immortal.y - 65 + bob);
       }
 
-      // Urgency flash
       if (urgency && Math.floor(now / 500) % 2 === 0) {
         ctx.strokeStyle = '#ff6b6b';
         ctx.lineWidth = 2;
@@ -433,27 +408,21 @@ const WanderingImmortal = {
     const y = immortal.y + bob;
     const c = immortal.type.color;
 
-    // Robe
     ctx.fillStyle = c;
     ctx.globalAlpha = 0.9;
     ctx.fillRect(x - 10, y - 28, 20, 26);
-
-    // Sleeves
     ctx.fillRect(x - 18, y - 24, 8, 14);
     ctx.fillRect(x + 10, y - 24, 8, 14);
 
-    // Head
     ctx.fillStyle = '#ffe4c4';
     ctx.beginPath();
     ctx.arc(x, y - 35, 10, 0, Math.PI * 2);
     ctx.fill();
 
-    // Hair/hat
     ctx.fillStyle = c;
     ctx.fillRect(x - 10, y - 46, 20, 10);
     ctx.fillRect(x - 2, y - 54, 4, 12);
 
-    // Eyes glow
     ctx.fillStyle = '#fff';
     ctx.fillRect(x - 6, y - 38, 4, 3);
     ctx.fillRect(x + 2, y - 38, 4, 3);
@@ -461,7 +430,6 @@ const WanderingImmortal = {
     ctx.fillRect(x - 5, y - 37, 2, 2);
     ctx.fillRect(x + 3, y - 37, 2, 2);
 
-    // Floating particles
     if (Utils.chance(0.15)) {
       GameState.particles.push({
         x: x + (Math.random() - 0.5) * 20,
@@ -478,7 +446,6 @@ const WanderingImmortal = {
   // ==================== INTERACT ====================
   interact(immortal) {
     if (!immortal || !immortal.canInteract) return;
-
     this._openDialog(immortal);
   },
 
@@ -504,7 +471,6 @@ const WanderingImmortal = {
     const type = immortal.type;
     const condMet = !type.condition || type.condition(Player);
 
-    // Dùng NPC dialog UI có sẵn
     const dialogEl = document.getElementById('npcDialog');
     document.getElementById('npcName').textContent = type.name;
     document.getElementById('npcTitle').textContent = type.title;
@@ -513,7 +479,6 @@ const WanderingImmortal = {
     if (!condMet) dialogText = `[${type.conditionText}]\n${type.dialog}`;
     document.getElementById('npcText').textContent = dialogText;
 
-    // Avatar canvas
     const avatarCanvas = document.getElementById('npcAvatarCanvas');
     const ctx2 = avatarCanvas.getContext('2d');
     ctx2.clearRect(0, 0, 32, 32);
@@ -536,22 +501,14 @@ const WanderingImmortal = {
       optionsEl.appendChild(el);
     } else {
       switch (type.service) {
-        case 'teach_skill':
-          this._buildTeachOptions(optionsEl, immortal);
-          break;
-        case 'sell_rare':
-          this._buildSellOptions(optionsEl, immortal);
-          break;
-        case 'gamble':
-          this._buildGambleOptions(optionsEl, immortal);
-          break;
+        case 'teach_skill': this._buildTeachOptions(optionsEl, immortal); break;
+        case 'sell_rare':   this._buildSellOptions(optionsEl, immortal);  break;
+        case 'gamble':      this._buildGambleOptions(optionsEl, immortal); break;
       }
     }
 
-    // Thử thách luôn có thể
     this._addChallengeOption(optionsEl, immortal);
 
-    // History note
     if (this._hasMetBefore(immortal.typeKey)) {
       const el = document.createElement('div');
       el.style.cssText = 'color:#666;font-size:9px;text-align:center;margin:6px 0';
@@ -559,7 +516,6 @@ const WanderingImmortal = {
       optionsEl.appendChild(el);
     }
 
-    // Close
     const closeEl = document.createElement('div');
     closeEl.className = 'npc-option';
     closeEl.innerHTML = '<span>👋 Tạm biệt</span>';
@@ -592,7 +548,6 @@ const WanderingImmortal = {
       const alreadyHas = this.unlockedPassives.includes(reward.id);
       const el = document.createElement('div');
       el.className = 'npc-option' + (alreadyHas ? ' disabled' : '');
-
       el.innerHTML = `
         <div style="display:flex;justify-content:space-between;align-items:center">
           <span>📚 ${reward.name}</span>
@@ -600,7 +555,6 @@ const WanderingImmortal = {
         </div>
         <div style="font-size:9px;color:#aaa;margin-top:3px">${reward.desc}</div>
       `;
-
       if (!alreadyHas) {
         const r = reward;
         const im = immortal;
@@ -635,9 +589,7 @@ const WanderingImmortal = {
       if (canBuy) {
         const it = item;
         const im = immortal;
-        el.addEventListener('click', () => {
-          this._buySpecialItem(it, im);
-        });
+        el.addEventListener('click', () => { this._buySpecialItem(it, im); });
       }
       container.appendChild(el);
     }
@@ -700,9 +652,7 @@ const WanderingImmortal = {
       <div style="color:#f0c040;font-size:16px;font-weight:bold;margin-bottom:16px;text-align:center">
         ⚔️ Thử Thách Du Tiên
       </div>
-      <div style="color:#ccc;font-size:11px;margin-bottom:16px;text-align:center">
-        Chọn loại thử thách:
-      </div>
+      <div style="color:#ccc;font-size:11px;margin-bottom:16px;text-align:center">Chọn loại thử thách:</div>
       <div style="display:flex;flex-direction:column;gap:10px">
         <div class="npc-option" id="wi-ch-time" style="border-color:#ff9800">
           <div style="display:flex;justify-content:space-between">
@@ -725,27 +675,14 @@ const WanderingImmortal = {
           </div>
           <div style="font-size:9px;color:#aaa;margin-top:3px">Chiến phân thân Du Tiên. Thắng: passive đặc biệt. Thua: mất 20% HP</div>
         </div>
-        <div class="npc-option" id="wi-ch-cancel">
-          <span>❌ Quay lại</span>
-        </div>
+        <div class="npc-option" id="wi-ch-cancel"><span>❌ Quay lại</span></div>
       </div>
     `;
 
-    document.getElementById('wi-ch-time').onclick = () => {
-      overlay.style.display = 'none';
-      this._startTimeChallenge(immortal);
-    };
-    document.getElementById('wi-ch-quiz').onclick = () => {
-      overlay.style.display = 'none';
-      this._startQuizChallenge(immortal);
-    };
-    document.getElementById('wi-ch-duel').onclick = () => {
-      overlay.style.display = 'none';
-      this._startDuelChallenge(immortal);
-    };
-    document.getElementById('wi-ch-cancel').onclick = () => {
-      overlay.style.display = 'none';
-    };
+    document.getElementById('wi-ch-time').onclick   = () => { overlay.style.display = 'none'; this._startTimeChallenge(immortal); };
+    document.getElementById('wi-ch-quiz').onclick   = () => { overlay.style.display = 'none'; this._startQuizChallenge(immortal); };
+    document.getElementById('wi-ch-duel').onclick   = () => { overlay.style.display = 'none'; this._startDuelChallenge(immortal); };
+    document.getElementById('wi-ch-cancel').onclick = () => { overlay.style.display = 'none'; };
   },
 
   _startTimeChallenge(immortal) {
@@ -823,7 +760,6 @@ const WanderingImmortal = {
       }
     } else if (type === 'duel') {
       if (success) {
-        // Grant random passive from current immortal
         const immortal = this.state.active.find(i => i.id === this.state.challengeActive?.immortalId);
         if (immortal && immortal.type.rewards) {
           const available = immortal.type.rewards.filter(r => !this.unlockedPassives.includes(r.id));
@@ -852,12 +788,8 @@ const WanderingImmortal = {
 
     const content = document.getElementById('wi-challenge-content');
     content.innerHTML = `
-      <div style="color:#4fc3f7;font-size:15px;font-weight:bold;margin-bottom:16px;text-align:center">
-        🧩 Câu Đố Thiên Cơ
-      </div>
-      <div style="color:#fff;font-size:12px;margin-bottom:16px;text-align:center;line-height:1.6">
-        ${quiz.q}
-      </div>
+      <div style="color:#4fc3f7;font-size:15px;font-weight:bold;margin-bottom:16px;text-align:center">🧩 Câu Đố Thiên Cơ</div>
+      <div style="color:#fff;font-size:12px;margin-bottom:16px;text-align:center;line-height:1.6">${quiz.q}</div>
       <div style="display:flex;flex-direction:column;gap:8px" id="wi-quiz-opts"></div>
     `;
 
@@ -869,7 +801,6 @@ const WanderingImmortal = {
       el.addEventListener('click', () => {
         overlay.style.display = 'none';
         if (i === quiz.ans) {
-          // Đúng: nhận item hiếm
           const prizes = ['realmPill','expPotion','spiritStone','demonCore'];
           const prizeId = prizes[Utils.randomInt(0, prizes.length - 1)];
           Inventory.add(prizeId, 1);
@@ -888,7 +819,6 @@ const WanderingImmortal = {
   },
 
   _startDuelChallenge(immortal) {
-    // Tạo enemy phân thân Du Tiên
     const duelEnemy = {
       id: 'wi_duel',
       type: 'duel',
@@ -900,8 +830,7 @@ const WanderingImmortal = {
       hp: Math.floor(Player.maxHp * 1.5),
       maxHp: Math.floor(Player.maxHp * 1.5),
       atk: Math.floor(Player.atk * 0.8),
-      exp: 0,
-      gold: 0,
+      exp: 0, gold: 0,
       level: Player.level,
       size: 14,
       color: immortal.type.color,
@@ -909,10 +838,8 @@ const WanderingImmortal = {
       boss: false,
       drops: [],
       alive: true,
-      moveTimer: 0,
-      moveDir: 0,
-      attackTimer: 0,
-      hitFlash: 0,
+      moveTimer: 0, moveDir: 0,
+      attackTimer: 0, hitFlash: 0,
       aggroed: true,
       isDuelEnemy: true,
     };
@@ -929,7 +856,6 @@ const WanderingImmortal = {
       done: false,
     };
 
-    // Override potion temporarily
     this._origHeal = Player.heal.bind(Player);
     Player.heal = (hp, mp) => {
       if (this.state.challengeActive && this.state.challengeActive.type === 'duel') {
@@ -942,7 +868,6 @@ const WanderingImmortal = {
     UI.addLog(`💀 Thử thách sinh tử bắt đầu! Đánh bại phân thân ${immortal.type.name}!`, 'system');
     UI.showNotification('💀 Sinh Tử Quyết!', 'Không được dùng potion!');
 
-    // Watch for duel enemy death
     const watchDuel = setInterval(() => {
       const ch = this.state.challengeActive;
       if (!ch || ch.done) { clearInterval(watchDuel); return; }
@@ -964,12 +889,10 @@ const WanderingImmortal = {
   // ==================== REWARDS ====================
   _learnPassive(reward, immortal) {
     if (this.unlockedPassives.includes(reward.id)) return;
-
     this.unlockedPassives.push(reward.id);
     this._applyPassive(reward);
     this._recordMeeting(immortal);
     this._saveData();
-
     UI.showNotification(`✨ ${reward.name}`, reward.desc);
     UI.addLog(`✨ Học được: ${reward.name}! ${reward.desc}`, 'realm');
   },
@@ -977,19 +900,15 @@ const WanderingImmortal = {
   _applyPassive(reward) {
     const s = reward.stats;
     if (!s) return;
-
-    if (s.critRate) Player.critRate = (Player.critRate || 0.08) + s.critRate;
+    if (s.critRate)   Player.critRate = (Player.critRate || 0.08) + s.critRate;
     if (s.speedBonus) Player.baseSpeed += Player.baseSpeed * s.speedBonus;
-    if (s.expBonus) {
-      WanderingImmortal._permExpBonus = (WanderingImmortal._permExpBonus || 0) + s.expBonus;
-    }
-    if (s.lifesteal) WanderingImmortal._lifesteal = (WanderingImmortal._lifesteal || 0) + s.lifesteal;
+    if (s.expBonus)   WanderingImmortal._permExpBonus = (WanderingImmortal._permExpBonus || 0) + s.expBonus;
+    if (s.lifesteal)  WanderingImmortal._lifesteal = (WanderingImmortal._lifesteal || 0) + s.lifesteal;
     if (s.fullHpBonus) WanderingImmortal._fullHpBonus = (WanderingImmortal._fullHpBonus || 0) + s.fullHpBonus;
-    if (s.auraAtk) WanderingImmortal._auraAtk = (WanderingImmortal._auraAtk || 0) + s.auraAtk;
+    if (s.auraAtk)    WanderingImmortal._auraAtk = (WanderingImmortal._auraAtk || 0) + s.auraAtk;
     if (s.darkAtkBonus) WanderingImmortal._darkAtkBonus = (WanderingImmortal._darkAtkBonus || 0) + s.darkAtkBonus;
-    if (s.heavenEye) WanderingImmortal._heavenEye = true;
+    if (s.heavenEye)  WanderingImmortal._heavenEye = true;
     if (s.forbiddenLightning) WanderingImmortal._forbiddenLightning = true;
-
     Player.recalculateStats();
   },
 
@@ -1004,21 +923,18 @@ const WanderingImmortal = {
   },
 
   _buySpecialItem(item, immortal) {
-    if (Player.gold < item.price) {
-      UI.addLog('❌ Không đủ vàng!', 'system');
-      return;
-    }
+    if (Player.gold < item.price) { UI.addLog('❌ Không đủ vàng!', 'system'); return; }
     Player.gold -= item.price;
 
     const e = item.effect;
-    if (e.hp) Player.heal(e.hp, 0);
-    if (e.mp) Player.heal(0, e.mp);
-    if (e.exp) Player.gainExp(e.exp);
-    if (e.realmExp) Player.gainRealmExp(e.realmExp);
-    if (e.permHp) { Player.maxHp += e.permHp; Player.hp = Math.min(Player.hp + e.permHp, Player.maxHp); }
-    if (e.permMp) { Player.maxMp += e.permMp; }
-    if (e.permDef) { Player.baseDef += e.permDef; Player.recalculateStats(); }
-    if (e.permExpBonus) { WanderingImmortal._permExpBonus = (WanderingImmortal._permExpBonus || 0) + e.permExpBonus; }
+    if (e.hp)          Player.heal(e.hp, 0);
+    if (e.mp)          Player.heal(0, e.mp);
+    if (e.exp)         Player.gainExp(e.exp);
+    if (e.realmExp)    Player.gainRealmExp(e.realmExp);
+    if (e.permHp)      { Player.maxHp += e.permHp; Player.hp = Math.min(Player.hp + e.permHp, Player.maxHp); }
+    if (e.permMp)      { Player.maxMp += e.permMp; }
+    if (e.permDef)     { Player.baseDef += e.permDef; Player.recalculateStats(); }
+    if (e.permExpBonus){ WanderingImmortal._permExpBonus = (WanderingImmortal._permExpBonus || 0) + e.permExpBonus; }
 
     UI.updateGold();
     UI.showNotification(`🛒 ${item.name}`, item.desc);
@@ -1053,7 +969,6 @@ const WanderingImmortal = {
           UI.addLog(`🎲 Thua! Mất ${ITEMS[lost]?.name || lost}`, 'damage');
         }
       } else {
-        // Give a better weapon
         const weapons = ['steelSword','silverSword','flameSword','frostSword'];
         const prize = weapons[Utils.randomInt(0, weapons.length - 1)];
         Inventory.add(prize, 1);
@@ -1088,17 +1003,13 @@ const WanderingImmortal = {
   _updateHUDIndicator() {
     const el = document.getElementById('wi-hud-indicator');
     if (!el) return;
-    if (this.state.active.length === 0) {
-      el.style.display = 'none';
-      return;
-    }
+    if (this.state.active.length === 0) { el.style.display = 'none'; return; }
     el.style.display = 'flex';
     const immortal = this.state.active[0];
     const remaining = immortal.expireTime - Date.now();
     const mins = Math.ceil(remaining / 60000);
     el.querySelector('#wi-hud-name').textContent = immortal.type.name;
     el.querySelector('#wi-hud-time').textContent = `${mins}p`;
-
     const pulse = Math.sin(Date.now() / 400) > 0;
     el.style.borderColor = pulse ? immortal.type.color : '#333';
   },
@@ -1107,13 +1018,11 @@ const WanderingImmortal = {
   _injectUI() {
     const div = document.createElement('div');
     div.innerHTML = `
-      <!-- WI HUD Indicator -->
       <div id="wi-hud-indicator" style="
         display:none;position:absolute;top:200px;left:10px;z-index:25;
         background:rgba(0,0,0,0.8);border:2px solid #f0c040;border-radius:8px;
         padding:6px 10px;font-size:10px;color:#f0c040;
-        align-items:center;gap:6px;flex-direction:column;min-width:90px;
-      ">
+        align-items:center;gap:6px;flex-direction:column;min-width:90px;">
         <div style="font-size:9px;color:#aaa">🧙 Du Tiên</div>
         <div id="wi-hud-name" style="font-weight:bold;text-align:center"></div>
         <div style="display:flex;align-items:center;gap:4px">
@@ -1121,30 +1030,20 @@ const WanderingImmortal = {
           <span id="wi-hud-time" style="color:#ff9800;font-size:10px;font-weight:bold"></span>
         </div>
       </div>
-
-      <!-- Challenge overlay -->
       <div id="wi-challenge-overlay" style="
         display:none;position:absolute;top:0;left:0;width:100%;height:100%;
         background:rgba(0,0,0,0.8);z-index:150;
-        align-items:center;justify-content:center;
-      ">
+        align-items:center;justify-content:center;">
         <div id="wi-challenge-content" style="
           background:linear-gradient(135deg,#1a1a2e,#16213e);
           border:3px solid #f0c040;border-radius:15px;
-          padding:20px;width:90%;max-width:360px;
-          max-height:80vh;overflow-y:auto;
-        "></div>
+          padding:20px;width:90%;max-width:360px;max-height:80vh;overflow-y:auto;"></div>
       </div>
-
-      <!-- Timer bar -->
       <div id="wi-timer-container" style="
         display:none;position:absolute;bottom:220px;left:50%;
         transform:translateX(-50%);z-index:30;width:260px;
-        background:rgba(0,0,0,0.8);border:2px solid #ff9800;border-radius:8px;padding:6px 10px;
-      ">
-        <div id="wi-timer-label" style="color:#ff9800;font-size:10px;font-weight:bold;text-align:center;margin-bottom:4px">
-          ⏱️ 2:00 | 0/8 quái
-        </div>
+        background:rgba(0,0,0,0.8);border:2px solid #ff9800;border-radius:8px;padding:6px 10px;">
+        <div id="wi-timer-label" style="color:#ff9800;font-size:10px;font-weight:bold;text-align:center;margin-bottom:4px">⏱️ 2:00 | 0/8 quái</div>
         <div style="background:#111;border-radius:4px;height:8px;overflow:hidden">
           <div id="wi-timer-bar" style="height:100%;background:#ff9800;border-radius:4px;transition:width 0.3s;width:100%"></div>
         </div>
@@ -1152,7 +1051,6 @@ const WanderingImmortal = {
     `;
     document.body.appendChild(div);
 
-    // Passive list button in menu bar
     const menuBar = document.getElementById('menuBar');
     if (menuBar) {
       const btn = document.createElement('div');
@@ -1168,13 +1066,8 @@ const WanderingImmortal = {
     overlay.style.display = 'flex';
     const content = document.getElementById('wi-challenge-content');
 
-    let html = `
-      <div style="color:#f0c040;font-size:16px;font-weight:bold;margin-bottom:12px;text-align:center">
-        🧙 Du Tiên Hệ Thống
-      </div>
-    `;
+    let html = `<div style="color:#f0c040;font-size:16px;font-weight:bold;margin-bottom:12px;text-align:center">🧙 Du Tiên Hệ Thống</div>`;
 
-    // Active immortals
     if (this.state.active.length > 0) {
       html += `<div style="color:#8ef;font-size:11px;margin-bottom:8px;font-weight:bold">📍 Đang xuất hiện:</div>`;
       for (const im of this.state.active) {
@@ -1186,7 +1079,6 @@ const WanderingImmortal = {
       }
     }
 
-    // Trails
     if (this.state.trails.length > 0) {
       html += `<div style="color:#888;font-size:11px;margin-bottom:8px;margin-top:8px">👣 Vừa rời đi:</div>`;
       for (const t of this.state.trails) {
@@ -1195,7 +1087,6 @@ const WanderingImmortal = {
       }
     }
 
-    // Passives
     html += `<div style="border-top:1px solid #333;margin-top:12px;padding-top:12px;color:#f0c040;font-size:11px;font-weight:bold;margin-bottom:8px">✨ Passive đã học (${this.unlockedPassives.length}):</div>`;
     if (this.unlockedPassives.length === 0) {
       html += `<div style="color:#666;font-size:10px">Chưa học được passive nào. Gặp Du Tiên để học!</div>`;
@@ -1208,18 +1099,15 @@ const WanderingImmortal = {
         }
         if (found) {
           html += `<div style="background:rgba(240,192,64,0.1);border:1px solid #f0c04066;border-radius:6px;padding:6px 8px;margin-bottom:4px;font-size:10px">
-            <b style="color:#f0c040">${found.name}</b><br>
-            <span style="color:#aaa">${found.desc}</span>
+            <b style="color:#f0c040">${found.name}</b><br><span style="color:#aaa">${found.desc}</span>
           </div>`;
         }
       }
     }
 
-    // History
     if (this.state.history.length > 0) {
       html += `<div style="border-top:1px solid #333;margin-top:12px;padding-top:12px;color:#888;font-size:10px;margin-bottom:6px">📖 Lịch sử gặp gỡ:</div>`;
-      const recent = [...this.state.history].reverse().slice(0, 5);
-      for (const h of recent) {
+      for (const h of [...this.state.history].reverse().slice(0, 5)) {
         html += `<div style="color:#555;font-size:9px;padding:2px 0">${h.name} — ${h.date}</div>`;
       }
     }
@@ -1258,11 +1146,10 @@ const WanderingImmortal = {
       const raw = localStorage.getItem('wi_data');
       if (!raw) return;
       const d = JSON.parse(raw);
-      this.state.todayCount = d.todayCount || 0;
-      this.state.lastDayReset = d.lastDayReset || 0;
-      this.state.history = d.history || [];
-      this.unlockedPassives = d.unlockedPassives || [];
-      // Re-apply passives after load
+      this.state.todayCount    = d.todayCount    || 0;
+      this.state.lastDayReset  = d.lastDayReset  || 0;
+      this.state.history       = d.history       || [];
+      this.unlockedPassives    = d.unlockedPassives || [];
       setTimeout(() => this._reapplyAllPassives(), 500);
     } catch(e) {}
   },
@@ -1275,18 +1162,15 @@ Game.init = function() {
   WanderingImmortal.init();
 };
 
-// Hook Game.update
 const _origGameUpdate_WI = Game.update.bind(Game);
 Game.update = function(dt) {
   _origGameUpdate_WI(dt);
   WanderingImmortal.update(dt);
 };
 
-// Hook Game.render — render Du Tiên trên world
 const _origGameRender_WI = Game.render.bind(Game);
 Game.render = function() {
   _origGameRender_WI();
-  // Render trong world space
   const ctx = this.ctx;
   ctx.save();
   ctx.translate(-GameState.camera.x, -GameState.camera.y);
@@ -1294,13 +1178,11 @@ Game.render = function() {
   ctx.restore();
 };
 
-// Hook Game.handleTap — intercept click để interact Du Tiên
 const _origHandleTap_WI = Game.handleTap.bind(Game);
 Game.handleTap = function(screenX, screenY) {
   const worldX = screenX + GameState.camera.x;
   const worldY = screenY + GameState.camera.y;
 
-  // Check Du Tiên trước
   for (const immortal of WanderingImmortal.state.active) {
     if (!immortal.visible) continue;
     const d = Utils.dist(worldX, worldY, immortal.x, immortal.y);
@@ -1313,26 +1195,22 @@ Game.handleTap = function(screenX, screenY) {
   _origHandleTap_WI(screenX, screenY);
 };
 
-// Hook Enemies.damage để track kills cho challenge + lifesteal
 const _origEnemiesDamage_WI = Enemies.damage ? Enemies.damage.bind(Enemies) : null;
 if (_origEnemiesDamage_WI) {
   Enemies.damage = function(enemy, amount, isCrit, color) {
     _origEnemiesDamage_WI(enemy, amount, isCrit, color);
 
-    // Lifesteal passive
     if (WanderingImmortal._lifesteal && amount > 0) {
       const heal = Math.floor(amount * WanderingImmortal._lifesteal);
       if (heal > 0) Player.heal(heal, 0);
     }
 
-    // Track death for time challenge
     if (enemy && !enemy.alive) {
       WanderingImmortal.onEnemyKilled();
     }
   };
 }
 
-// Hook Player.gainExp để thêm permExpBonus
 const _origGainExp_WI = Player.gainExp.bind(Player);
 Player.gainExp = function(amount) {
   const bonus = WanderingImmortal._permExpBonus || 0;
@@ -1340,7 +1218,6 @@ Player.gainExp = function(amount) {
   _origGainExp_WI(finalAmount);
 };
 
-// Hook Game.save/load
 const _origSave_WI = Game.save.bind(Game);
 Game.save = function() {
   _origSave_WI();
@@ -1355,4 +1232,4 @@ Game.load = function() {
 };
 
 console.log('🧙 feature_wandering_immortal.js loaded');
-// Thêm vào index.html: <script src="js/feature_wandering_immortal.js"></script>
+// ===== CHANGES: Xóa console.log debug trong trySpawn() (dòng log position của Du Tiên); giữ nguyên toàn bộ logic, hooks, tên object WanderingImmortal =====

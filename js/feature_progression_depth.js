@@ -1,7 +1,7 @@
+// ===== FILE: feature_progression_depth.js =====
 // ==================== FEATURE: PROGRESSION DEPTH ====================
 // Sections: LimitBreak | SealedWeapons | ExteriorCultivation | UI & Init
 // Load sau: game.js
-// <script src="js/feature_progression_depth.js"></script>
 
 // ==================== SECTION 1: DATA & CONFIG ====================
 
@@ -219,7 +219,7 @@ const EXTERIOR_CULTIVATION_CONFIG = {
     foot: {
       id: 'foot', name: 'Túc', icon: '🦶', desc: 'Tu luyện tốc độ',
       effectPerLevel: { speedPct: 0.025 },
-      bonusAt5: { dashAbility: false },
+      bonusAt5: {},           // dashAbility không được dùng trong applyToStats — đã xóa
       bonusAt10: { speedPct: 0.25 },
       materials: [
         { id: 'wolfPelt', count: 3 },
@@ -290,8 +290,7 @@ const LimitBreakSystem = {
   onSkillUsed(skillIdx) {
     const state = this.state;
     const cfg = LIMIT_BREAK_CONFIG.skills.find(s => s.skillIdx === skillIdx);
-    if (!cfg) return;
-    if (state.unlocked[skillIdx]) return;
+    if (!cfg || state.unlocked[skillIdx]) return;
 
     state.useCounts[skillIdx]++;
     if (state.useCounts[skillIdx] >= cfg.targetUses) {
@@ -451,9 +450,7 @@ const LimitBreakSystem = {
       const isMoving = Math.abs(Player.vx || 0) > 0.1 || Math.abs(Player.vy || 0) > 0.1;
       if (!isMoving) {
         state.swordHeartIdleTimer += dt;
-        if (state.swordHeartIdleTimer >= 2000) {
-          state.swordHeartReady = true;
-        }
+        if (state.swordHeartIdleTimer >= 2000) state.swordHeartReady = true;
       } else {
         state.swordHeartIdleTimer = 0;
         state.swordHeartReady = false;
@@ -471,7 +468,7 @@ const LimitBreakSystem = {
   loadSaveData(data) {
     if (!data) return;
     if (data.useCounts) this.state.useCounts = data.useCounts;
-    if (data.unlocked) this.state.unlocked = data.unlocked;
+    if (data.unlocked)  this.state.unlocked  = data.unlocked;
   }
 };
 
@@ -521,8 +518,7 @@ const SealedWeaponSystem = {
       UI.addLog('❌ Đã equip đủ 2 Thần Khí!', 'system');
       return;
     }
-    const frags = this.getFragmentCount(weaponId);
-    if (frags === 0) {
+    if (this.getFragmentCount(weaponId) === 0) {
       UI.addLog('❌ Chưa có mảnh vỡ của Thần Khí này!', 'system');
       return;
     }
@@ -535,17 +531,15 @@ const SealedWeaponSystem = {
   getWeaponStats(weaponId) {
     const weapon = SEALED_WEAPON_CONFIG.weapons.find(function(w) { return w.id === weaponId; });
     if (!weapon) return {};
-    const frags = this.getFragmentCount(weaponId);
-    const pct = frags / weapon.totalFragments;
+    const pct = this.getFragmentCount(weaponId) / weapon.totalFragments;
     if (pct >= 1.0) return Object.assign({}, weapon.stats100pct);
     if (pct >= 0.6) return Object.assign({}, weapon.stats60pct);
     return {};
   },
 
   applyToStats(player) {
-    const self = this;
-    for (const weaponId of self.state.equippedWeapons) {
-      const stats = self.getWeaponStats(weaponId);
+    for (const weaponId of this.state.equippedWeapons) {
+      const stats = this.getWeaponStats(weaponId);
       if (stats.atk)      player.atk      += stats.atk;
       if (stats.def)      player.def      += stats.def;
       if (stats.maxHp)    player.maxHp    += stats.maxHp;
@@ -553,19 +547,16 @@ const SealedWeaponSystem = {
       if (stats.critRate) player.critRate += stats.critRate;
       if (stats.critDmg)  player.critDmg  += stats.critDmg;
     }
-    self._applyPassives(player);
+    this._applyPassives(player);
   },
 
   _applyPassives(player) {
-    // Wind stacks (Phong Vũ)
     if (this.isEquipped('windSpear') && this.isUnlocked('windSpear')) {
       player.speed += player.speed * (this.state.windStacks * 0.02);
     }
-    // Blood thirst
     if (this.isEquipped('hellBlade') && this.isUnlocked('hellBlade')) {
       player._bloodThirstBonus = this.state.bloodThirstBonus;
     }
-    // Chaos sword
     if (this.isEquipped('chaosSword') && this.isUnlocked('chaosSword')) {
       player._chaosSwordActive = true;
     }
@@ -585,12 +576,10 @@ const SealedWeaponSystem = {
           state.windStacks = Math.min(windWeapon.passive.maxStacks, state.windStacks + 1);
           Player.recalculateStats();
         }
-      } else {
-        if (state.windStacks > 0) {
-          state.windStacks = 0;
-          state._windAccum = 0;
-          Player.recalculateStats();
-        }
+      } else if (state.windStacks > 0) {
+        state.windStacks = 0;
+        state._windAccum = 0;
+        Player.recalculateStats();
       }
     }
 
@@ -603,9 +592,7 @@ const SealedWeaponSystem = {
         state.lifeForceNoAggro += dt;
         if (state.lifeForceNoAggro >= 3000) {
           const regen = Math.floor(Player.maxHp * 0.02 * dt / 1000);
-          if (regen > 0) {
-            Player.hp = Math.min(Player.maxHp, Player.hp + regen);
-          }
+          if (regen > 0) Player.hp = Math.min(Player.maxHp, Player.hp + regen);
         }
       } else {
         state.lifeForceNoAggro = 0;
@@ -624,14 +611,15 @@ const SealedWeaponSystem = {
       Player.recalculateStats();
     }
 
-    // Fragment drops
-    const dropRates = SEALED_WEAPON_CONFIG.fragmentDropRates;
-    const rate = enemy.boss ? dropRates.bossEnemy : dropRates.normalEnemy;
+    // Fragment drops (chỉ drop 1 fragment per kill)
+    const rate = enemy.boss
+      ? SEALED_WEAPON_CONFIG.fragmentDropRates.bossEnemy
+      : SEALED_WEAPON_CONFIG.fragmentDropRates.normalEnemy;
     for (const weapon of SEALED_WEAPON_CONFIG.weapons) {
       if (Utils.chance(rate)) {
         this.state.fragments[weapon.fragmentId] = (this.state.fragments[weapon.fragmentId] || 0) + 1;
         UI.addLog('🔮 Nhặt được mảnh ' + weapon.name + '!', 'item');
-        break; // chỉ drop 1 fragment per kill
+        break;
       }
     }
   },
@@ -658,10 +646,10 @@ const SealedWeaponSystem = {
 
   loadSaveData(data) {
     if (!data) return;
-    if (data.fragments) this.state.fragments = data.fragments;
+    if (data.fragments)       this.state.fragments       = data.fragments;
     if (data.equippedWeapons) this.state.equippedWeapons = data.equippedWeapons;
     if (data.bloodThirstBonus) this.state.bloodThirstBonus = data.bloodThirstBonus;
-    if (data.windStacks) this.state.windStacks = data.windStacks;
+    if (data.windStacks)      this.state.windStacks      = data.windStacks;
   }
 };
 
@@ -669,9 +657,7 @@ const SealedWeaponSystem = {
 
 const ExteriorCultivation = {
   state: {
-    levels: {
-      hand: 0, foot: 0, eye: 0, ear: 0, heart: 0, brain: 0
-    }
+    levels: { hand: 0, foot: 0, eye: 0, ear: 0, heart: 0, brain: 0 }
   },
 
   getLevel(partId) {
@@ -691,9 +677,7 @@ const ExteriorCultivation = {
         missing.push(itemName + ' x' + m.count);
       }
     });
-    if (Player.gold < part.goldCost) {
-      missing.push('💰 ' + part.goldCost + ' vàng');
-    }
+    if (Player.gold < part.goldCost) missing.push('💰 ' + part.goldCost + ' vàng');
     return { can: missing.length === 0, missing: missing };
   },
 
@@ -704,7 +688,6 @@ const ExteriorCultivation = {
       return false;
     }
     const part = EXTERIOR_CULTIVATION_CONFIG.parts[partId];
-    // Consume
     part.materials.forEach(function(m) { Inventory.remove(m.id, m.count); });
     Player.gold -= part.goldCost;
 
@@ -757,8 +740,7 @@ const ExteriorCultivation = {
         player._extCdReduction = part.bonusAt5.cdReductionPct;
       }
 
-      // Special bonuses
-      if (level >= 5 && part.bonusAt5 && part.bonusAt5.seeEnemyHp)  player._seeEnemyHp = true;
+      if (level >= 5 && part.bonusAt5 && part.bonusAt5.seeEnemyHp) player._seeEnemyHp = true;
       if (level >= 5 && part.bonusAt5 && part.bonusAt5.trapDetect)  player._trapDetect  = true;
     }
   },
@@ -781,9 +763,7 @@ const ProgressionDepthUI = {
     const stats = document.getElementById('charStats');
     if (!stats) return;
 
-    // Remove old sections if exist
-    const oldSections = stats.querySelectorAll('.pd-section');
-    oldSections.forEach(function(s) { s.remove(); });
+    stats.querySelectorAll('.pd-section').forEach(function(s) { s.remove(); });
 
     stats.appendChild(this._buildLimitBreakSection());
     stats.appendChild(this._buildSealedWeaponSection());
@@ -840,8 +820,7 @@ const ProgressionDepthUI = {
       const unlocked = SealedWeaponSystem.isUnlocked(weapon.id);
       const equipped = SealedWeaponSystem.isEquipped(weapon.id);
       const pct = frags / total;
-      const loreIdx = Math.min(frags, total);
-      const loreText = weapon.loreByFragments[loreIdx];
+      const loreText = weapon.loreByFragments[Math.min(frags, total)];
 
       const stats = SealedWeaponSystem.getWeaponStats(weapon.id);
       const statParts = [];
@@ -862,10 +841,8 @@ const ProgressionDepthUI = {
       html += '<div>';
       html += '<div style="color:' + weapon.color + ';font-size:11px;font-weight:bold">' + weapon.name + '</div>';
       html += '<div style="color:#888;font-size:9px">' + frags + '/' + total + ' mảnh</div>';
-      html += '</div>';
-      html += '</div>';
+      html += '</div></div>';
 
-      // Progress bar
       html += '<div style="text-align:right">';
       html += '<div style="background:#111;border-radius:3px;height:4px;width:60px;overflow:hidden;margin-bottom:3px">';
       html += '<div style="height:100%;background:' + weapon.color + ';width:' + Math.floor(pct * 100) + '%"></div>';
@@ -880,22 +857,16 @@ const ProgressionDepthUI = {
       } else {
         html += '<span style="font-size:9px;color:#444">Chưa có</span>';
       }
-      html += '</div></div>'; // end flex + top row
+      html += '</div></div>';
 
-      // Lore
       html += '<div style="font-size:9px;color:#777;margin-top:4px;font-style:italic">' + loreText + '</div>';
-
-      // Stats
       if (statParts.length > 0) {
         html += '<div style="font-size:9px;color:#4caf50;margin-top:3px">' + statParts.join(' · ') + '</div>';
       }
-
-      // Passive
       if (unlocked) {
         html += '<div style="font-size:9px;color:#ffeb3b;margin-top:3px">✨ ' + weapon.passive.name + ': ' + weapon.passive.desc + '</div>';
       }
-
-      html += '</div>'; // end weapon card
+      html += '</div>';
     });
 
     html += '</div>';
@@ -939,28 +910,25 @@ const ProgressionDepthUI = {
       html += '<div style="color:#888;font-size:9px">' + effectDesc + '</div>';
       html += '</div></div>';
 
-      // Progress bar
       const barPct = Math.floor(level / maxLevel * 100);
       html += '<div style="background:#111;border-radius:3px;height:4px;overflow:hidden;margin-bottom:6px">';
       html += '<div style="height:100%;background:#ce93d8;width:' + barPct + '%"></div>';
       html += '</div>';
 
       if (!isMax) {
-        // Materials required
         html += '<div style="font-size:8px;margin-bottom:5px">' + matList + ' <span style="color:' + (goldOk ? '#4caf50' : '#f44336') + '">💰' + part.goldCost + '</span></div>';
-
         const btnStyle = check.can
           ? 'background:rgba(206,147,216,0.2);border:1px solid #ce93d8;color:#ce93d8;cursor:pointer;'
           : 'background:rgba(255,255,255,0.03);border:1px solid #444;color:#555;cursor:not-allowed;';
         html += '<button onclick="ExteriorCultivation.upgrade(\'' + partId + '\')" '
           + 'style="width:100%;padding:4px;border-radius:4px;font-size:9px;font-family:inherit;' + btnStyle + '">';
-        html += isMax ? 'Tối đa' : (check.can ? '⬆ Tu Luyện' : '❌ Thiếu vật liệu');
+        html += check.can ? '⬆ Tu Luyện' : '❌ Thiếu vật liệu';
         html += '</button>';
       } else {
         html += '<div style="text-align:center;font-size:9px;color:#ffeb3b">✨ Tối đa Lv.10!</div>';
       }
 
-      html += '</div>'; // end part card
+      html += '</div>';
     }
 
     html += '</div>';
@@ -988,7 +956,6 @@ const ProgressionDepthFeature = {
     const _origRecalc = Player.recalculateStats.bind(Player);
     Player.recalculateStats = function() {
       _origRecalc();
-      // Clear temporary flags before applying systems
       delete this._extSkillDmg;
       delete this._extMpCostRed;
       delete this._extCdReduction;
@@ -1004,7 +971,6 @@ const ProgressionDepthFeature = {
   _wrapUseSkill() {
     const _origUS = Player.useSkill.bind(Player);
     Player.useSkill = function(idx) {
-      // Sword Heart pre-hook
       const swordHeartReady = LimitBreakSystem.state.swordHeartReady;
       if (swordHeartReady) {
         LimitBreakSystem.state.swordHeartReady = false;
@@ -1014,7 +980,6 @@ const ProgressionDepthFeature = {
 
       const result = _origUS(idx);
 
-      // Clean up sword heart flags
       delete Player._forceCrit;
       delete Player._pierceDefense;
 
@@ -1043,9 +1008,7 @@ const ProgressionDepthFeature = {
     const _origTravel = Maps.travelTo.bind(Maps);
     Maps.travelTo = function(mapIndex) {
       const result = _origTravel(mapIndex);
-      if (result) {
-        SealedWeaponSystem.onMapChange();
-      }
+      if (result) SealedWeaponSystem.onMapChange();
       return result;
     };
   },
@@ -1068,8 +1031,8 @@ const ProgressionDepthFeature = {
   },
 
   _wrapGameSaveLoad() {
-    const _origSave = Game.save ? Game.save.bind(Game) : null;
-    if (_origSave) {
+    if (Game.save) {
+      const _origSave = Game.save.bind(Game);
       Game.save = function() {
         _origSave();
         try {
@@ -1085,8 +1048,8 @@ const ProgressionDepthFeature = {
       };
     }
 
-    const _origLoad = Game.load ? Game.load.bind(Game) : null;
-    if (_origLoad) {
+    if (Game.load) {
+      const _origLoad = Game.load.bind(Game);
       Game.load = function() {
         _origLoad();
         ProgressionDepthFeature._loadSaveData();
@@ -1099,9 +1062,9 @@ const ProgressionDepthFeature = {
       const raw = localStorage.getItem('tuxien_progression');
       if (!raw) return;
       const data = JSON.parse(raw);
-      if (data.limitBreak) LimitBreakSystem.loadSaveData(data.limitBreak);
-      if (data.sealedWeapons) SealedWeaponSystem.loadSaveData(data.sealedWeapons);
-      if (data.exteriorCultivation) ExteriorCultivation.loadSaveData(data.exteriorCultivation);
+      if (data.limitBreak)           LimitBreakSystem.loadSaveData(data.limitBreak);
+      if (data.sealedWeapons)        SealedWeaponSystem.loadSaveData(data.sealedWeapons);
+      if (data.exteriorCultivation)  ExteriorCultivation.loadSaveData(data.exteriorCultivation);
     } catch(e) {
       console.warn('PD load error:', e);
     }
@@ -1109,13 +1072,10 @@ const ProgressionDepthFeature = {
 
   _applyLBGlows() {
     LimitBreakSystem.state.unlocked.forEach(function(unlocked, i) {
-      if (unlocked) {
-        const cfg = LIMIT_BREAK_CONFIG.skills[i];
-        const btn = document.getElementById('skill' + i);
-        if (btn) {
-          btn.style.boxShadow = '0 0 20px ' + cfg.color + ', inset 0 0 20px rgba(0,0,0,0.5)';
-        }
-      }
+      if (!unlocked) return;
+      const cfg = LIMIT_BREAK_CONFIG.skills[i];
+      const btn = document.getElementById('skill' + i);
+      if (btn) btn.style.boxShadow = '0 0 20px ' + cfg.color + ', inset 0 0 20px rgba(0,0,0,0.5)';
     });
   },
 
@@ -1123,7 +1083,6 @@ const ProgressionDepthFeature = {
     this._injectStyles();
     this._loadSaveData();
 
-    // Apply all wraps
     this._wrapRecalculateStats();
     this._wrapUseSkill();
     this._wrapEnemiesKill();
@@ -1132,10 +1091,8 @@ const ProgressionDepthFeature = {
     this._wrapRenderCharacter();
     this._wrapGameSaveLoad();
 
-    // Recalculate with loaded data
     Player.recalculateStats();
 
-    // Restore LB glow after a short delay (UI ready)
     setTimeout(function() {
       ProgressionDepthFeature._applyLBGlows();
     }, 500);
@@ -1144,7 +1101,6 @@ const ProgressionDepthFeature = {
   }
 };
 
-// Auto-init: wrap Game.init nếu chưa chạy, hoặc init trực tiếp
 (function() {
   if (typeof Game !== 'undefined' && Game.init) {
     const _origGameInit = Game.init.bind(Game);
@@ -1153,9 +1109,16 @@ const ProgressionDepthFeature = {
       ProgressionDepthFeature.init();
     };
   } else {
-    // Fallback: đợi DOM ready
     window.addEventListener('load', function() {
       ProgressionDepthFeature.init();
     });
   }
 })();
+
+// ===== CHANGES: =====
+// 1. Xóa field dead config `dashAbility: false` khỏi foot.bonusAt5 — field này không bao
+//    giờ được đọc trong ExteriorCultivation.applyToStats (chỉ kiểm tra seeEnemyHp, trapDetect)
+// 2. Đơn giản hóa SealedWeaponSystem.update: gộp else-if cho windStacks reset
+// 3. Xóa biến trung gian loreIdx thừa trong _buildSealedWeaponSection
+// 4. Xóa if/else thừa trong _buildExteriorSection (nhánh isMax trong button không cần)
+// 5. Đơn giản hóa _applyLBGlows với early return

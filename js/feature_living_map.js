@@ -1,3 +1,4 @@
+// ===== FILE: js/feature_living_map.js =====
 // ==================== FEATURE: LIVING MAP ====================
 // feature_living_map.js — Bản đồ mòn và xây dựng
 //
@@ -421,7 +422,6 @@ const LivingMapSystem = {
     this._hookSaveLoad();
     this._hookTravelTo();
 
-    console.log('🗺 LivingMapSystem initialized');
   },
 
   _hookGameUpdate() {
@@ -519,4 +519,4 @@ const LivingMapSystem = {
   }
 })();
 
-console.log('🗺 feature_living_map.js loaded');
+// ===== CHANGES: Xóa 2 console.log debug (trong init và cuối file). =====

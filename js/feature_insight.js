@@ -1,33 +1,31 @@
+// ===== FILE: feature_insight.js =====
 // ==================== FEATURE: ĐỐN NGỘ / CƠ DUYÊN ====================
 // Load sau game.js
 // Pattern: monkey-patch only, không sửa file gốc
 
 const InsightSystem = {
   // ==================== CONFIG ====================
-  // Tất cả passive có thể đốn ngộ
   passivePool: [
-    { id: 'sword_heart',   name: 'Kiếm Tâm',       icon: '⚔️',  desc: '+15% DMG tất cả kỹ năng',   type: 'dmgBonus',   value: 0.15 },
-    { id: 'thunder_law',   name: 'Lôi Pháp',        icon: '⚡',  desc: '+25 ATK, kỹ năng AoE +30% DMG', type: 'aoeDmg',     value: 0.30, atkFlat: 25 },
-    { id: 'iron_body',     name: 'Kim Thân',         icon: '🛡️',  desc: '+30 DEF, giảm 20% sát thương', type: 'ironBody',   value: 0.20, defFlat: 30 },
-    { id: 'blood_surge',   name: 'Huyết Khí',        icon: '🩸',  desc: 'Hồi 3% HP mỗi khi giết quái', type: 'lifeSteal',  value: 0.03 },
-    { id: 'swift_step',    name: 'Tốc Bộ',           icon: '💨',  desc: '+0.5 tốc độ di chuyển',     type: 'speedUp',    value: 0.5 },
-    { id: 'spirit_eye',    name: 'Linh Nhãn',        icon: '👁️',  desc: '+10% tỷ lệ critical',        type: 'critBonus',  value: 0.10 },
-    { id: 'void_edge',     name: 'Hư Không Nhẫn',    icon: '🌑',  desc: 'Bỏ qua 25% DEF của quái',   type: 'armorPen',   value: 0.25 },
-    { id: 'heaven_qi',     name: 'Thiên Địa Khí',    icon: '🌀',  desc: '+10 MP regen mỗi 2 giây',   type: 'mpRegen',    value: 10 },
-    { id: 'gold_luck',     name: 'Kim Vận',           icon: '💰',  desc: '+30% vàng rơi từ quái',     type: 'goldBonus',  value: 0.30 },
-    { id: 'realm_wisdom',  name: 'Đạo Căn',           icon: '🔮',  desc: '+50% Tu Vi mỗi lần tu luyện', type: 'realmBonus', value: 0.50 },
-    { id: 'crit_chain',    name: 'Liên Bạo',          icon: '🔥',  desc: 'Mỗi critical +50% DMG crit tiếp theo (max 3s)', type: 'critChain', value: 0.50 },
-    { id: 'shadow_step',   name: 'Ảnh Thoái',         icon: '👤',  desc: '20% né tránh sát thương',   type: 'dodge',      value: 0.20 },
+    { id: 'sword_heart',  name: 'Kiếm Tâm',     icon: '⚔️', desc: '+15% DMG tất cả kỹ năng',       type: 'dmgBonus',   value: 0.15 },
+    { id: 'thunder_law',  name: 'Lôi Pháp',      icon: '⚡', desc: '+25 ATK, kỹ năng AoE +30% DMG', type: 'aoeDmg',     value: 0.30, atkFlat: 25 },
+    { id: 'iron_body',    name: 'Kim Thân',       icon: '🛡️', desc: '+30 DEF, giảm 20% sát thương',  type: 'ironBody',   value: 0.20, defFlat: 30 },
+    { id: 'blood_surge',  name: 'Huyết Khí',      icon: '🩸', desc: 'Hồi 3% HP mỗi khi giết quái',   type: 'lifeSteal',  value: 0.03 },
+    { id: 'swift_step',   name: 'Tốc Bộ',         icon: '💨', desc: '+0.5 tốc độ di chuyển',         type: 'speedUp',    value: 0.5 },
+    { id: 'spirit_eye',   name: 'Linh Nhãn',      icon: '👁️', desc: '+10% tỷ lệ critical',           type: 'critBonus',  value: 0.10 },
+    { id: 'void_edge',    name: 'Hư Không Nhẫn',  icon: '🌑', desc: 'Bỏ qua 25% DEF của quái',       type: 'armorPen',   value: 0.25 },
+    { id: 'heaven_qi',    name: 'Thiên Địa Khí',  icon: '🌀', desc: '+10 MP regen mỗi 2 giây',       type: 'mpRegen',    value: 10 },
+    { id: 'gold_luck',    name: 'Kim Vận',         icon: '💰', desc: '+30% vàng rơi từ quái',         type: 'goldBonus',  value: 0.30 },
+    { id: 'realm_wisdom', name: 'Đạo Căn',         icon: '🔮', desc: '+50% Tu Vi mỗi lần tu luyện',   type: 'realmBonus', value: 0.50 },
+    { id: 'crit_chain',   name: 'Liên Bạo',        icon: '🔥', desc: 'Mỗi critical +50% DMG crit tiếp theo (max 3s)', type: 'critChain', value: 0.50 },
+    { id: 'shadow_step',  name: 'Ảnh Thoái',       icon: '👤', desc: '20% né tránh sát thương',       type: 'dodge',      value: 0.20 },
   ],
 
-  // Player state
   activePassives: [],     // max 3, mỗi cái là { id, level (1 or 2), ...passiveData }
   killCount: 0,
-  nextMilestone: 50,      // lần giết thứ bao nhiêu có thể đốn ngộ
-  milestoneStep: 50,      // khoảng cách giữa các milestone
+  nextMilestone: 50,
+  milestoneStep: 50,
   pendingInsight: false,
 
-  // Temp state for crit_chain
   critChainTimer: 0,
   critChainActive: false,
 
@@ -42,27 +40,23 @@ const InsightSystem = {
   // ==================== TRIGGER ====================
   onKill() {
     this.killCount++;
+    if (this.killCount < this.nextMilestone) return;
 
-    if (this.killCount >= this.nextMilestone) {
-      // Tính xác suất: milestone đầu 40%, sau mỗi milestone giảm nhưng tối thiểu 15%
-      const chance = Math.max(0.15, 0.40 - (this.nextMilestone / this.milestoneStep - 1) * 0.05);
-      if (Math.random() < chance) {
-        this.pendingInsight = true;
-        this._triggerInsight();
-      }
-      this.nextMilestone += this.milestoneStep;
+    const chance = Math.max(0.15, 0.40 - (this.nextMilestone / this.milestoneStep - 1) * 0.05);
+    if (Math.random() < chance) {
+      this.pendingInsight = true;
+      this._triggerInsight();
     }
+    this.nextMilestone += this.milestoneStep;
   },
 
   _triggerInsight() {
-    // Chọn 3 passive ngẫu nhiên từ pool (ưu tiên chưa có hoặc có thể upgrade)
     const candidates = this._getCandidates(3);
     if (candidates.length === 0) {
       UI.addLog('🔮 Đốn ngộ: Đã đạt tới giới hạn!', 'system');
       this.pendingInsight = false;
       return;
     }
-
     this._showInsightPanel(candidates);
     UI.showNotification('✨ ĐỐN NGỘ!', 'Chọn cơ duyên của bạn!');
     UI.addLog('✨ Đốn Ngộ xuất hiện! Chọn passive mới!', 'realm');
@@ -76,7 +70,6 @@ const InsightSystem = {
       const existing = this.activePassives.find(a => a.id === p.id);
       if (existing) {
         if (existing.level < 2) {
-          // Có thể ghép → nâng lên level 2
           result.push({ ...p, isUpgrade: true, existingLevel: existing.level });
         }
         // Đã level 2 → bỏ qua
@@ -96,7 +89,6 @@ const InsightSystem = {
     this.pendingInsight = false;
 
     if (isUpgrade) {
-      // Nâng cấp passive có sẵn
       const existing = this.activePassives.find(a => a.id === passiveId);
       if (existing) {
         existing.level = 2;
@@ -105,11 +97,9 @@ const InsightSystem = {
         UI.showNotification(`💥 ${p.name} Cấp 2!`, 'Hiệu quả x2!');
       }
     } else if (this.activePassives.length >= 3) {
-      // Phải chọn bỏ cái cũ
       this._showReplacePanel(p);
       return;
     } else {
-      // Thêm mới
       this.activePassives.push({ ...p, level: 1 });
       this._applyPassive(p, false);
       UI.addLog(`✨ Đốn Ngộ: ${p.icon} ${p.name}!`, 'realm');
@@ -124,14 +114,12 @@ const InsightSystem = {
     const newP = this.passivePool.find(x => x.id === newPassiveId);
     if (!newP) return;
 
-    // Remove old
     const idx = this.activePassives.findIndex(a => a.id === removeId);
     if (idx !== -1) {
       this._removePassive(this.activePassives[idx]);
       this.activePassives.splice(idx, 1);
     }
 
-    // Add new
     this.activePassives.push({ ...newP, level: 1 });
     this._applyPassive(newP, false);
 
@@ -142,18 +130,17 @@ const InsightSystem = {
     Player.recalculateStats();
   },
 
-  // Apply stat changes
+  // Apply stat changes (chỉ áp dụng các stat mutate trực tiếp vào Player base)
   _applyPassive(p, isUpgrade) {
-    const mul = isUpgrade ? 1 : 1; // level 2 doubling handled in get methods
     if (p.type === 'speedUp') {
-      Player.baseSpeed += p.value * (isUpgrade ? 1 : 1);
+      Player.baseSpeed += p.value;
       Player.speed = Player.baseSpeed;
     }
     if (p.type === 'ironBody' && p.defFlat) {
-      Player.baseDef = (Player.baseDef || 3) + p.defFlat * (isUpgrade ? 1 : 1);
+      Player.baseDef = (Player.baseDef || 3) + p.defFlat;
     }
-    if (p.type === 'thunder_law' && p.atkFlat) {
-      Player.baseAtk += p.atkFlat * (isUpgrade ? 1 : 1);
+    if (p.type === 'aoeDmg' && p.atkFlat) {
+      Player.baseAtk += p.atkFlat;
     }
   },
 
@@ -165,59 +152,27 @@ const InsightSystem = {
     if (p.type === 'ironBody' && p.defFlat) {
       Player.baseDef = Math.max(3, Player.baseDef - p.defFlat * p.level);
     }
-    if (p.type === 'thunder_law' && p.atkFlat) {
+    if (p.type === 'aoeDmg' && p.atkFlat) {
       Player.baseAtk = Math.max(12, Player.baseAtk - p.atkFlat * p.level);
     }
   },
 
-  // Get bonus multipliers (dùng trong combat hooks)
-  getDmgBonus() {
-    let bonus = 1;
+  // ── Bonus getters ─────────────────────────────────────────
+  // Helper chung tránh lặp code
+  _sumPassive(type, base) {
+    let val = base;
     for (const p of this.activePassives) {
-      if (p.type === 'dmgBonus') bonus += p.value * p.level;
+      if (p.type === type) val += p.value * p.level;
     }
-    return bonus;
+    return val;
   },
 
-  getArmorPen() {
-    let pen = 0;
-    for (const p of this.activePassives) {
-      if (p.type === 'armorPen') pen += p.value * p.level;
-    }
-    return pen;
-  },
-
-  getDodgeChance() {
-    let dodge = 0;
-    for (const p of this.activePassives) {
-      if (p.type === 'dodge') dodge += p.value * p.level;
-    }
-    return dodge;
-  },
-
-  getCritBonus() {
-    let bonus = 0;
-    for (const p of this.activePassives) {
-      if (p.type === 'critBonus') bonus += p.value * p.level;
-    }
-    return bonus;
-  },
-
-  getGoldBonus() {
-    let bonus = 1;
-    for (const p of this.activePassives) {
-      if (p.type === 'goldBonus') bonus += p.value * p.level;
-    }
-    return bonus;
-  },
-
-  getRealmBonus() {
-    let bonus = 1;
-    for (const p of this.activePassives) {
-      if (p.type === 'realmBonus') bonus += p.value * p.level;
-    }
-    return bonus;
-  },
+  getDmgBonus()    { return this._sumPassive('dmgBonus', 1); },
+  getArmorPen()    { return this._sumPassive('armorPen', 0); },
+  getDodgeChance() { return this._sumPassive('dodge',    0); },
+  getCritBonus()   { return this._sumPassive('critBonus',0); },
+  getGoldBonus()   { return this._sumPassive('goldBonus',1); },
+  getRealmBonus()  { return this._sumPassive('realmBonus',1); },
 
   // ==================== UPDATE ====================
   update(dt) {
@@ -236,8 +191,7 @@ const InsightSystem = {
 
     // Apply crit bonus from insight
     if (Player.skills) {
-      const critAdd = this.getCritBonus();
-      Player.critRate = 0.08 + Player.equipCritRate + critAdd;
+      Player.critRate = 0.08 + Player.equipCritRate + this.getCritBonus();
     }
   },
 
@@ -254,15 +208,13 @@ const InsightSystem = {
     // Gold bonus
     const goldBonus = this.getGoldBonus();
     if (goldBonus > 1) {
-      const extraGold = Math.floor(enemy.gold * (goldBonus - 1));
-      Player.gold += extraGold;
+      Player.gold += Math.floor(enemy.gold * (goldBonus - 1));
     }
 
     this.onKill();
   },
 
   onCrit() {
-    // Crit chain passive
     for (const p of this.activePassives) {
       if (p.type === 'critChain') {
         this.critChainActive = true;
@@ -286,10 +238,8 @@ const InsightSystem = {
     content.innerHTML = '';
 
     for (const c of candidates) {
-      const div = document.createElement('div');
       const isUpgrade = c.isUpgrade;
-      const lvl2Desc = isUpgrade ? `<div style="color:#f0c040;font-size:9px;margin-top:3px">⬆️ Nâng cấp → Cấp 2 (x2 hiệu quả)</div>` : '';
-
+      const div = document.createElement('div');
       div.style.cssText = `
         background:rgba(255,255,255,0.04);
         border:2px solid ${isUpgrade ? '#f0c040' : '#8ef'};
@@ -302,7 +252,7 @@ const InsightSystem = {
           <div>
             <div style="color:${isUpgrade ? '#f0c040' : '#8ef'};font-size:13px;font-weight:bold">${c.name} ${isUpgrade ? '⬆' : ''}</div>
             <div style="color:#ccc;font-size:10px">${c.desc}</div>
-            ${lvl2Desc}
+            ${isUpgrade ? `<div style="color:#f0c040;font-size:9px;margin-top:3px">⬆️ Nâng cấp → Cấp 2 (x2 hiệu quả)</div>` : ''}
           </div>
         </div>
       `;
@@ -408,12 +358,10 @@ const InsightSystem = {
   },
 
   _injectHTML() {
-    // Passive HUD bar (bottom center)
     const hud = document.createElement('div');
     hud.id = 'insightHUD';
     document.body.appendChild(hud);
 
-    // Insight choice panel
     const panel = document.createElement('div');
     panel.id = 'insightPanel';
     panel.innerHTML = `
@@ -427,7 +375,6 @@ const InsightSystem = {
     `;
     document.body.appendChild(panel);
 
-    // Replace panel
     const replPanel = document.createElement('div');
     replPanel.id = 'insightReplacePanel';
     replPanel.innerHTML = `
@@ -460,9 +407,9 @@ const InsightSystem = {
       const raw = localStorage.getItem('tuxien_insight');
       if (!raw) return;
       const data = JSON.parse(raw);
-      this.activePassives = data.activePassives || [];
-      this.killCount = data.killCount || 0;
-      this.nextMilestone = data.nextMilestone || 50;
+      this.activePassives  = data.activePassives  || [];
+      this.killCount       = data.killCount        || 0;
+      this.nextMilestone   = data.nextMilestone    || 50;
       // Re-apply stat passives
       for (const p of this.activePassives) {
         for (let lv = 0; lv < p.level; lv++) {
@@ -504,8 +451,7 @@ const InsightSystem = {
   // Wrap Player.useSkill để apply dmgBonus + armorPen + critChain
   const _origUseSkill = Player.useSkill.bind(Player);
   Player.useSkill = function (idx) {
-    if (!this.alive) return false;
-    if (!this.skills) return false;
+    if (!this.alive || !this.skills) return false;
     const skill = this.skills[idx];
     if (!skill || skill.cd > 0) return false;
     if (this.mp < skill.mp) { UI.addLog('⚡ Không đủ linh lực!', 'system'); return false; }
@@ -521,6 +467,7 @@ const InsightSystem = {
     }
     hitEnemies.sort((a, b) => a.dist - b.dist);
 
+    const isAoe = skill.type === 'aoe' || skill.type === 'ultimate';
     let targets = [];
     switch (skill.type) {
       case 'melee': case 'projectile': targets = hitEnemies.slice(0, 1).map(h => h.enemy); break;
@@ -528,12 +475,14 @@ const InsightSystem = {
       case 'ultimate': targets = hitEnemies.map(h => h.enemy); break;
     }
 
-    const isAoe = skill.type === 'aoe' || skill.type === 'ultimate';
-    const aoeMul = isAoe ? (1 + InsightSystem.passivePool.find(p => p.type === 'aoeDmg')?.value *
-      (InsightSystem.activePassives.find(a => a.type === 'aoeDmg')?.level || 0) || 1) : 1;
-    const dmgBonus = InsightSystem.getDmgBonus();
+    // AoE passive multiplier
+    const aoeDef = InsightSystem.passivePool.find(p => p.type === 'aoeDmg');
+    const aoePas = InsightSystem.activePassives.find(a => a.type === 'aoeDmg');
+    const aoeMul = isAoe && aoeDef && aoePas ? (1 + aoeDef.value * aoePas.level) : 1;
+
+    const dmgBonus  = InsightSystem.getDmgBonus();
     const critBonus = InsightSystem.getCritBonus();
-    const armorPen = InsightSystem.getArmorPen();
+    const armorPen  = InsightSystem.getArmorPen();
 
     for (const enemy of targets) {
       let damage = Math.floor(this.atk * skill.dmgMul * dmgBonus * (isAoe ? aoeMul : 1));
@@ -543,9 +492,7 @@ const InsightSystem = {
         isCrit = true;
         InsightSystem.onCrit();
       }
-      // Armor pen
-      const effDef = Math.floor(enemy.def || 0) * (1 - armorPen);
-      // Dodge check on enemy side — not needed here (player attacking)
+      // armorPen: effDef не используется в текущем Enemies.damage — передаём как есть
       Enemies.damage(enemy, damage, isCrit, skill.color);
     }
 
@@ -579,4 +526,12 @@ const InsightSystem = {
 })();
 
 console.log('✨ feature_insight.js loaded');
-// Thêm vào index.html: <script src="js/feature_insight.js"></script>
+
+// ===== CHANGES: =====
+// 1. Hợp nhất 6 getter trùng lặp (getDmgBonus, getArmorPen, getDodgeChance, getCritBonus,
+//    getGoldBonus, getRealmBonus) thành dùng chung _sumPassive(type, base) — giảm ~40 dòng
+// 2. Xóa mul = isUpgrade ? 1 : 1 thừa trong _applyPassive — logic không đổi
+// 3. Sửa _applyPassive: field type 'thunder_law' → 'aoeDmg' đúng với pool config
+// 4. Đơn giản hoá onKill: dùng early return thay vì if lồng nhau
+// 5. Đơn giản hoá aoeMul tính toán trong useSkill wrap — xóa || 1 thừa, tách rõ điều kiện
+// 6. Xóa comment Vietnamese về armorPen bị bỏ qua (không thay đổi behavior)

@@ -1,3 +1,4 @@
+// ===== FILE: js/feature_sect_arts.js =====
 // ==================== SECT & ARTS SYSTEM ====================
 // feature_sect_arts.js — monkey-patch only, không sửa file gốc
 // Load sau: game.js
@@ -50,11 +51,11 @@ const SECT_CONFIG = {
   },
 
   sectLevels: [
-    { level: 1, name: 'Sơ Lập',     disciple: 0, upgradeCost: null },
-    { level: 2, name: 'Phát Triển', disciple: 0, upgradeCost: { spiritStone: 5, gold: 500 } },
-    { level: 3, name: 'Hưng Thịnh', disciple: 1, upgradeCost: { dragonScale: 2, gold: 1500 } },
+    { level: 1, name: 'Sơ Lập',      disciple: 0, upgradeCost: null },
+    { level: 2, name: 'Phát Triển',  disciple: 0, upgradeCost: { spiritStone: 5, gold: 500 } },
+    { level: 3, name: 'Hưng Thịnh',  disciple: 1, upgradeCost: { dragonScale: 2, gold: 1500 } },
     { level: 4, name: 'Cường Thịnh', disciple: 2, upgradeCost: { celestialOrb: 2, gold: 3000 } },
-    { level: 5, name: 'Thịnh Thế',  disciple: 3, upgradeCost: { celestialOrb: 5, gold: 8000 } }
+    { level: 5, name: 'Thịnh Thế',   disciple: 3, upgradeCost: { celestialOrb: 5, gold: 8000 } }
   ],
 
   discipleNames: [
@@ -131,12 +132,9 @@ const ARTS_CONFIG = {
 
 // Helper: darken hex color
 function _darkenColor(hex) {
-  let r = parseInt(hex.slice(1, 3), 16);
-  let g = parseInt(hex.slice(3, 5), 16);
-  let b = parseInt(hex.slice(5, 7), 16);
-  r = Math.max(0, Math.floor(r * 0.65));
-  g = Math.max(0, Math.floor(g * 0.65));
-  b = Math.max(0, Math.floor(b * 0.65));
+  const r = Math.max(0, Math.floor(parseInt(hex.slice(1, 3), 16) * 0.65));
+  const g = Math.max(0, Math.floor(parseInt(hex.slice(3, 5), 16) * 0.65));
+  const b = Math.max(0, Math.floor(parseInt(hex.slice(5, 7), 16) * 0.65));
   return `#${r.toString(16).padStart(2,'0')}${g.toString(16).padStart(2,'0')}${b.toString(16).padStart(2,'0')}`;
 }
 
@@ -149,10 +147,16 @@ function _getArtName(artId) {
 // Helper: rarity color
 function _rarityColor(rarity) {
   if (rarity === 'legendary') return '#f0c040';
-  if (rarity === 'epic') return '#a855f7';
-  if (rarity === 'rare') return '#2196f3';
+  if (rarity === 'epic')      return '#a855f7';
+  if (rarity === 'rare')      return '#2196f3';
   return '#aaa';
 }
+
+// Helper: hex to rgb for CSS
+function _hexToRgb(hex) {
+  return `${parseInt(hex.slice(1,3),16)},${parseInt(hex.slice(3,5),16)},${parseInt(hex.slice(5,7),16)}`;
+}
+
 
 // ==================== SECTION 2: SECT SYSTEM ====================
 
@@ -183,10 +187,10 @@ const SectSystem = {
       UI.addLog('❌ Hãy chọn hướng tu luyện!', 'system');
       return false;
     }
-    this.state.founded = true;
-    this.state.sectName = name.trim();
+    this.state.founded   = true;
+    this.state.sectName  = name.trim();
     this.state.direction = direction;
-    this.state.level = 1;
+    this.state.level     = 1;
     this.state.disciples = [];
     Player.recalculateStats();
     UI.showNotification('🏯 ' + this.state.sectName, 'Tông Môn đã được lập!');
@@ -196,26 +200,19 @@ const SectSystem = {
 
   getBonus() {
     if (!this.state.founded || !this.state.direction) return {};
-    const dir = SECT_CONFIG.directions[this.state.direction];
-    return dir.bonusPerLevel[this.state.level - 1] || {};
+    return SECT_CONFIG.directions[this.state.direction].bonusPerLevel[this.state.level - 1] || {};
   },
 
   canUpgrade() {
     if (this.state.level >= 5) return { can: false, reason: 'Đã đạt cấp tối đa' };
-    const nextLevelData = SECT_CONFIG.sectLevels[this.state.level]; // index = next level - 1
-    const cost = nextLevelData.upgradeCost;
+    const cost    = SECT_CONFIG.sectLevels[this.state.level].upgradeCost;
     if (!cost) return { can: true, missing: [] };
 
     const missing = [];
-    if (cost.spiritStone && !Inventory.has('spiritStone', cost.spiritStone))
-      missing.push(`Linh Thạch x${cost.spiritStone}`);
-    if (cost.dragonScale && !Inventory.has('dragonScale', cost.dragonScale))
-      missing.push(`Vảy Rồng x${cost.dragonScale}`);
-    if (cost.celestialOrb && !Inventory.has('celestialOrb', cost.celestialOrb))
-      missing.push(`Thiên Châu x${cost.celestialOrb}`);
-    if (cost.gold && Player.gold < cost.gold)
-      missing.push(`${cost.gold} vàng`);
-
+    if (cost.spiritStone  && !Inventory.has('spiritStone',  cost.spiritStone))  missing.push(`Linh Thạch x${cost.spiritStone}`);
+    if (cost.dragonScale  && !Inventory.has('dragonScale',  cost.dragonScale))  missing.push(`Vảy Rồng x${cost.dragonScale}`);
+    if (cost.celestialOrb && !Inventory.has('celestialOrb', cost.celestialOrb)) missing.push(`Thiên Châu x${cost.celestialOrb}`);
+    if (cost.gold         && Player.gold < cost.gold)                           missing.push(`${cost.gold} vàng`);
     return { can: missing.length === 0, missing };
   },
 
@@ -225,13 +222,12 @@ const SectSystem = {
       UI.addLog('❌ Không đủ điều kiện: ' + (check.reason || check.missing.join(', ')), 'system');
       return false;
     }
-    const nextLevelData = SECT_CONFIG.sectLevels[this.state.level];
-    const cost = nextLevelData.upgradeCost;
+    const cost = SECT_CONFIG.sectLevels[this.state.level].upgradeCost;
     if (cost) {
-      if (cost.spiritStone) Inventory.remove('spiritStone', cost.spiritStone);
-      if (cost.dragonScale) Inventory.remove('dragonScale', cost.dragonScale);
+      if (cost.spiritStone)  Inventory.remove('spiritStone',  cost.spiritStone);
+      if (cost.dragonScale)  Inventory.remove('dragonScale',  cost.dragonScale);
       if (cost.celestialOrb) Inventory.remove('celestialOrb', cost.celestialOrb);
-      if (cost.gold) Player.gold -= cost.gold;
+      if (cost.gold)         Player.gold -= cost.gold;
     }
     this.state.level++;
     this._updateDisciples();
@@ -243,11 +239,10 @@ const SectSystem = {
   },
 
   changeDirection(newDirection) {
-    if (!this.state.founded) return false;
-    if (!SECT_CONFIG.directions[newDirection]) return false;
+    if (!this.state.founded || !SECT_CONFIG.directions[newDirection]) return false;
     const cost = SECT_CONFIG.directions[this.state.direction].changeCost;
     if (!Inventory.has('dragonScale', cost.dragonScale) || Player.gold < cost.gold) {
-      UI.addLog('❌ Không đủ điều kiện đổi hướng! Cần ' + cost.dragonScale + ' Vảy Rồng + ' + cost.gold + ' vàng', 'system');
+      UI.addLog(`❌ Không đủ điều kiện đổi hướng! Cần ${cost.dragonScale} Vảy Rồng + ${cost.gold} vàng`, 'system');
       return false;
     }
     Inventory.remove('dragonScale', cost.dragonScale);
@@ -260,18 +255,14 @@ const SectSystem = {
   },
 
   _updateDisciples() {
-    const maxDisciples = SECT_CONFIG.sectLevels[this.state.level - 1].disciple;
-    while (this.state.disciples.length < maxDisciples) {
-      this._createDisciple();
-    }
-    while (this.state.disciples.length > maxDisciples) {
-      this.state.disciples.pop();
-    }
+    const max = SECT_CONFIG.sectLevels[this.state.level - 1].disciple;
+    while (this.state.disciples.length < max) this._createDisciple();
+    while (this.state.disciples.length > max) this.state.disciples.pop();
   },
 
   _createDisciple() {
     const names = SECT_CONFIG.discipleNames;
-    const name = names[Math.floor(Math.random() * names.length)];
+    const name  = names[Math.floor(Math.random() * names.length)];
     const level = Math.max(1, Math.floor(Player.level * 0.5));
     this.state.disciples.push({
       name,
@@ -297,18 +288,13 @@ const SectSystem = {
       // Follow player
       const dist = Utils.dist(d.x, d.y, Player.x, Player.y);
       if (dist > 100) {
-        const dx = Player.x - d.x;
-        const dy = Player.y - d.y;
-        const nx = dx / dist, ny = dy / dist;
-        const newX = d.x + nx * 2.0;
-        const newY = d.y + ny * 2.0;
-        // Water check
+        const dx   = Player.x - d.x;
+        const dy   = Player.y - d.y;
+        const newX = d.x + (dx / dist) * 2.0;
+        const newY = d.y + (dy / dist) * 2.0;
         const tileX = Math.floor(newX / CONFIG.TILE_SIZE);
         const tileY = Math.floor(newY / CONFIG.TILE_SIZE);
-        if (!Maps.isWater(tileX, tileY)) {
-          d.x = newX;
-          d.y = newY;
-        }
+        if (!Maps.isWater(tileX, tileY)) { d.x = newX; d.y = newY; }
       }
 
       // Attack nearest enemy
@@ -349,23 +335,20 @@ const SectSystem = {
       const cx = d.x - GameState.camera.x;
       const cy = d.y - GameState.camera.y;
 
-      // Shadow
       ctx.fillStyle = 'rgba(0,0,0,0.3)';
       ctx.beginPath();
       ctx.ellipse(cx, cy + 12, 8, 3, 0, 0, Math.PI * 2);
       ctx.fill();
 
-      // Body
       const dirColor = this.state.direction
         ? SECT_CONFIG.directions[this.state.direction].color : '#888';
       ctx.fillStyle = dirColor;
       ctx.fillRect(cx - 5, cy - 10, 10, 14);
       ctx.fillStyle = '#ffe4c4';
-      ctx.fillRect(cx - 3, cy - 18, 6, 8);
+      ctx.fillRect(cx - 3, cy - 18,  6,  8);
       ctx.fillStyle = _darkenColor(dirColor);
-      ctx.fillRect(cx - 5, cy - 4, 10, 4);
+      ctx.fillRect(cx - 5, cy -  4, 10,  4);
 
-      // HP bar
       if (d.hp < d.maxHp) {
         ctx.fillStyle = '#333';
         ctx.fillRect(cx - 10, cy - 24, 20, 3);
@@ -373,7 +356,6 @@ const SectSystem = {
         ctx.fillRect(cx - 10, cy - 24, 20 * (d.hp / d.maxHp), 3);
       }
 
-      // Name
       ctx.fillStyle = '#ddd';
       ctx.font = '8px monospace';
       ctx.textAlign = 'center';
@@ -381,6 +363,7 @@ const SectSystem = {
     }
   }
 };
+
 
 // ==================== SECTION 3: ARTS SYSTEM ====================
 
@@ -398,40 +381,29 @@ const ArtsSystem = {
 
   getConflicts(artId) {
     const art = ARTS_CONFIG.secretArts.find(a => a.id === artId);
-    return (art && art.conflictWith ? art.conflictWith : []).filter(id => this.hasArt(id));
+    return (art?.conflictWith || []).filter(id => this.hasArt(id));
   },
 
   canLearn(artId) {
     const art = ARTS_CONFIG.secretArts.find(a => a.id === artId);
-    if (!art) return { can: false, reason: 'Công Pháp không tồn tại' };
-    if (this.hasArt(artId)) return { can: false, reason: 'Đã học rồi' };
-    const conflicts = this.getConflicts(artId);
-    const needsSlot = this.state.learnedArts.length >= ARTS_CONFIG.maxArtsSlots && conflicts.length === 0;
+    if (!art)                   return { can: false, reason: 'Công Pháp không tồn tại' };
+    if (this.hasArt(artId))     return { can: false, reason: 'Đã học rồi' };
+    const conflicts  = this.getConflicts(artId);
+    const needsSlot  = this.state.learnedArts.length >= ARTS_CONFIG.maxArtsSlots && conflicts.length === 0;
     return { can: true, conflicts, needsSlot };
   },
 
   learnArt(artId) {
     const check = this.canLearn(artId);
-    if (!check.can) {
-      UI.addLog('❌ ' + check.reason, 'system');
-      return false;
-    }
-    if (check.conflicts.length > 0) {
-      ArtsUI.showConflictDialog(artId, check.conflicts);
-      return false;
-    }
-    if (check.needsSlot) {
-      ArtsUI.showSlotDialog(artId);
-      return false;
-    }
+    if (!check.can) { UI.addLog('❌ ' + check.reason, 'system'); return false; }
+    if (check.conflicts.length > 0) { ArtsUI.showConflictDialog(artId, check.conflicts); return false; }
+    if (check.needsSlot)             { ArtsUI.showSlotDialog(artId); return false; }
     this._doLearnArt(artId);
     return true;
   },
 
   _doLearnArt(artId, replaceId) {
-    if (replaceId) {
-      this.forgetArt(replaceId);
-    }
+    if (replaceId) this.forgetArt(replaceId);
     this.state.learnedArts.push(artId);
     const art = ARTS_CONFIG.secretArts.find(a => a.id === artId);
     Player.recalculateStats();
@@ -459,16 +431,12 @@ const ArtsSystem = {
     if (this.hasArt('bloodSlaughter')) {
       Player.atk = Math.floor(Player.atk * (1 + this.state.bloodStacks * 0.02));
     }
-    if (this.hasArt('deathCounter') && Player.maxHp > 0 && Player.hp / Player.maxHp < 0.30) {
-      Player._artsDeathCounterActive = true;
-    } else {
-      Player._artsDeathCounterActive = false;
-    }
-    if (this.hasArt('infiniteSea')) {
-      Player._artsMpFloor = Math.floor(Player.maxMp * 0.20);
-    } else {
-      Player._artsMpFloor = 0;
-    }
+    Player._artsDeathCounterActive = this.hasArt('deathCounter')
+      && Player.maxHp > 0
+      && Player.hp / Player.maxHp < 0.30;
+    Player._artsMpFloor = this.hasArt('infiniteSea')
+      ? Math.floor(Player.maxMp * 0.20)
+      : 0;
   },
 
   update(dt) {
@@ -477,27 +445,23 @@ const ArtsSystem = {
       this.state._regenTimer += dt;
       if (this.state._regenTimer >= 3000) {
         this.state._regenTimer = 0;
-        const heal = Math.floor(Player.maxHp * 0.01);
-        Player.hp = Math.min(Player.maxHp, Player.hp + heal);
+        Player.hp = Math.min(Player.maxHp, Player.hp + Math.floor(Player.maxHp * 0.01));
       }
     } else {
       this.state._regenTimer = 0;
     }
 
-    // spiritSense pickup
+    // spiritSense auto-pickup
     if (this.hasArt('spiritSense')) {
       this.state._pickupTimer += dt;
       if (this.state._pickupTimer >= 500) {
         this.state._pickupTimer = 0;
-        if (GameState.groundItems && GameState.groundItems.length > 0) {
+        if (GameState.groundItems?.length > 0) {
           for (let i = GameState.groundItems.length - 1; i >= 0; i--) {
             const gi = GameState.groundItems[i];
-            const d = Utils.dist(Player.x, Player.y, gi.x, gi.y);
-            if (d <= 150) {
-              if (Inventory.add(gi.id, gi.count || 1)) {
-                GameState.groundItems.splice(i, 1);
-                UI.addLog('✨ Tiên Linh thu ' + (ITEMS[gi.id] ? ITEMS[gi.id].name : gi.id), 'item');
-              }
+            if (Utils.dist(Player.x, Player.y, gi.x, gi.y) <= 150 && Inventory.add(gi.id, gi.count || 1)) {
+              GameState.groundItems.splice(i, 1);
+              UI.addLog('✨ Tiên Linh thu ' + (ITEMS[gi.id]?.name || gi.id), 'item');
             }
           }
         }
@@ -505,13 +469,12 @@ const ArtsSystem = {
     }
 
     // infiniteSea MP floor
-    if (this.hasArt('infiniteSea') && Player._artsMpFloor > 0) {
-      if (Player.mp < Player._artsMpFloor) {
-        Player.mp = Player._artsMpFloor;
-      }
+    if (this.hasArt('infiniteSea') && Player._artsMpFloor > 0 && Player.mp < Player._artsMpFloor) {
+      Player.mp = Player._artsMpFloor;
     }
   }
 };
+
 
 // ==================== SECTION 4: UI ====================
 
@@ -523,10 +486,7 @@ const SectUI = {
     const state = SectSystem.state;
 
     if (!state.founded) {
-      // Check realm
-      const realmOk = SectSystem.canFound();
-
-      if (!realmOk) {
+      if (!SectSystem.canFound()) {
         container.innerHTML = `
           <div style="text-align:center;padding:20px;color:#ff9800">
             ⚠️ Cần đạt <b>Kim Đan Kỳ</b> để lập Tông Môn!<br>
@@ -535,208 +495,184 @@ const SectUI = {
         return;
       }
 
-      // Found form
       const form = document.createElement('div');
       form.style.cssText = 'padding:10px';
-
       form.innerHTML = `
         <div style="color:#f0c040;font-size:12px;font-weight:bold;margin-bottom:10px">🏯 Lập Tông Môn Mới</div>
         <input id="sectNameInput" type="text" maxlength="16"
           placeholder="Nhập tên Tông Môn..."
-          style="width:100%;padding:8px;background:rgba(255,255,255,0.08);
-                 border:2px solid #444;border-radius:8px;color:#fff;
-                 font-family:inherit;font-size:12px;box-sizing:border-box;margin-bottom:12px">
+          style="width:100%;padding:8px;background:rgba(255,255,255,0.08);border:2px solid #444;border-radius:8px;color:#fff;font-family:inherit;font-size:12px;box-sizing:border-box;margin-bottom:12px">
         <div style="color:#aaa;font-size:11px;margin-bottom:8px">Chọn hướng tu luyện:</div>
         <div id="dirCards" style="display:flex;flex-direction:column;gap:8px;margin-bottom:14px"></div>
         <button id="foundSectBtn"
-          style="width:100%;padding:10px;background:rgba(240,192,64,0.15);
-                 border:2px solid #f0c040;border-radius:10px;color:#f0c040;
-                 font-family:inherit;font-size:13px;font-weight:bold;cursor:pointer">
+          style="width:100%;padding:10px;background:rgba(240,192,64,0.15);border:2px solid #f0c040;border-radius:10px;color:#f0c040;font-family:inherit;font-size:13px;font-weight:bold;cursor:pointer">
           ⚡ Lập Tông Môn
-        </button>
-      `;
+        </button>`;
       container.appendChild(form);
 
-      // Direction cards
       const dirCards = form.querySelector('#dirCards');
       for (const key of ['sword', 'magic', 'body']) {
-        const dir = SECT_CONFIG.directions[key];
+        const dir  = SECT_CONFIG.directions[key];
         const card = document.createElement('div');
         card.style.cssText = `
           padding:10px;border-radius:10px;cursor:pointer;
           border:2px solid ${this.selectedDirection === key ? dir.color : '#333'};
           background:${this.selectedDirection === key ? `rgba(${_hexToRgb(dir.color)},0.18)` : 'rgba(255,255,255,0.04)'};
-          display:flex;align-items:center;gap:10px;transition:border .15s
-        `;
+          display:flex;align-items:center;gap:10px;transition:border .15s`;
         card.innerHTML = `
           <span style="font-size:20px">${dir.icon}</span>
           <div>
             <div style="color:${dir.color};font-size:12px;font-weight:bold">${dir.name}</div>
             <div style="color:#999;font-size:10px">${dir.desc}</div>
-          </div>
-        `;
-        card.addEventListener('click', () => {
-          this.selectedDirection = key;
-          this.renderSectTab(container);
-        });
+          </div>`;
+        card.addEventListener('click', () => { this.selectedDirection = key; this.renderSectTab(container); });
         dirCards.appendChild(card);
       }
 
       form.querySelector('#foundSectBtn').addEventListener('click', () => {
         const name = form.querySelector('#sectNameInput').value;
-        if (SectSystem.found(name, this.selectedDirection)) {
-          SectArtsPanel.renderCurrentTab();
-        }
+        if (SectSystem.found(name, this.selectedDirection)) SectArtsPanel.renderCurrentTab();
       });
+      return;
+    }
 
+    // ── Sect info ──
+    const dir       = SECT_CONFIG.directions[state.direction];
+    const levelInfo = SECT_CONFIG.sectLevels[state.level - 1];
+    const bonus     = SectSystem.getBonus();
+
+    const info = document.createElement('div');
+    info.style.cssText = 'padding:10px';
+
+    const header = document.createElement('div');
+    header.style.cssText = `
+      background:linear-gradient(135deg,rgba(${_hexToRgb(dir.color)},0.2),rgba(0,0,0,0.3));
+      border:2px solid ${dir.color};border-radius:12px;padding:12px;margin-bottom:12px;text-align:center`;
+    header.innerHTML = `
+      <div style="font-size:22px">${dir.icon}</div>
+      <div style="color:${dir.color};font-size:14px;font-weight:bold">${state.sectName}</div>
+      <div style="color:#aaa;font-size:11px">${dir.name} · Cấp ${state.level} · ${levelInfo.name}</div>`;
+    info.appendChild(header);
+
+    if (Object.keys(bonus).length > 0) {
+      const bonusDiv = document.createElement('div');
+      bonusDiv.style.cssText = 'background:rgba(255,255,255,0.04);border-radius:8px;padding:8px;margin-bottom:10px;font-size:11px';
+      bonusDiv.innerHTML = '<div style="color:#f0c040;margin-bottom:6px">✦ Bonus Tông Môn:</div>';
+      const bonusMap = {
+        atk:      ['ATK',       '+{v}%'],
+        def:      ['DEF',       '+{v}%'],
+        maxHp:    ['Max HP',    '+{v}%'],
+        maxMp:    ['Max MP',    '+{v}%'],
+        critRate: ['Bạo Kích',  '+{v}%'],
+        skillDmg: ['Skill DMG', '+{v}%'],
+        hpRegen:  ['HP Regen',  '+{v}/3s'],
+        mpRegen:  ['MP Regen',  '+{v}/3s']
+      };
+      for (const [k, v] of Object.entries(bonus)) {
+        if (!bonusMap[k]) continue;
+        const [label, fmt] = bonusMap[k];
+        const val = (k === 'hpRegen' || k === 'mpRegen') ? v : Math.round(v * 100);
+        bonusDiv.innerHTML += `<div style="color:#ccc;display:flex;justify-content:space-between">
+          <span>${label}</span><span style="color:#4caf50">${fmt.replace('{v}', val)}</span></div>`;
+      }
+      info.appendChild(bonusDiv);
+    }
+
+    if (state.disciples.length > 0) {
+      const discDiv = document.createElement('div');
+      discDiv.style.cssText = 'margin-bottom:10px';
+      discDiv.innerHTML = `<div style="color:#aaa;font-size:11px;margin-bottom:6px">👥 Đệ Tử (${state.disciples.length}):</div>`;
+      for (const d of state.disciples) {
+        discDiv.innerHTML += `
+          <div style="background:rgba(255,255,255,0.04);border-radius:6px;padding:6px 8px;
+                      display:flex;justify-content:space-between;align-items:center;margin-bottom:4px;font-size:11px">
+            <span style="color:${dir.color}">${dir.icon} ${d.name}</span>
+            <span style="color:#888">Lv.${d.level} · ATK ${d.atk}</span>
+          </div>`;
+      }
+      info.appendChild(discDiv);
+    }
+
+    if (state.level < 5) {
+      const nextLevel     = SECT_CONFIG.sectLevels[state.level];
+      const upgradeCheck  = SectSystem.canUpgrade();
+      let costHtml = '';
+      if (nextLevel.upgradeCost) {
+        for (const [k, v] of Object.entries(nextLevel.upgradeCost)) {
+          const iname = k === 'gold' ? `${v} 💰` : `${ITEMS[k]?.name || k} x${v}`;
+          const has   = k === 'gold' ? Player.gold >= v : Inventory.has(k, v);
+          costHtml += `<span style="color:${has ? '#4caf50' : '#f44336'}">${iname}</span> `;
+        }
+      }
+      const upDiv = document.createElement('div');
+      upDiv.style.cssText = 'margin-bottom:8px';
+      upDiv.innerHTML = `
+        <div style="color:#aaa;font-size:10px;margin-bottom:6px">Thăng cấp → ${nextLevel.name}: ${costHtml}</div>
+        <button id="upgradeSectBtn" ${upgradeCheck.can ? '' : 'disabled'}
+          style="width:100%;padding:8px;border:2px solid ${upgradeCheck.can ? '#f0c040' : '#444'};
+                 background:rgba(240,192,64,${upgradeCheck.can ? '0.15' : '0.05'});
+                 border-radius:8px;color:${upgradeCheck.can ? '#f0c040' : '#555'};
+                 font-family:inherit;font-size:12px;cursor:${upgradeCheck.can ? 'pointer' : 'default'}">
+          ⬆ Nâng Cấp Tông Môn
+        </button>`;
+      info.appendChild(upDiv);
+      if (upgradeCheck.can) {
+        upDiv.querySelector('#upgradeSectBtn').addEventListener('click', () => {
+          SectSystem.upgrade();
+          SectArtsPanel.renderCurrentTab();
+        });
+      }
     } else {
-      // Sect info
-      const dir = SECT_CONFIG.directions[state.direction];
-      const levelInfo = SECT_CONFIG.sectLevels[state.level - 1];
-      const bonus = SectSystem.getBonus();
+      info.innerHTML += `<div style="text-align:center;color:#f0c040;font-size:12px;padding:8px">🏆 Tông Môn đã đạt đỉnh cao!</div>`;
+    }
 
-      const info = document.createElement('div');
-      info.style.cssText = 'padding:10px';
-
-      // Header
-      const header = document.createElement('div');
-      header.style.cssText = `
-        background:linear-gradient(135deg,rgba(${_hexToRgb(dir.color)},0.2),rgba(0,0,0,0.3));
-        border:2px solid ${dir.color};border-radius:12px;padding:12px;margin-bottom:12px;text-align:center
-      `;
-      header.innerHTML = `
-        <div style="font-size:22px">${dir.icon}</div>
-        <div style="color:${dir.color};font-size:14px;font-weight:bold">${state.sectName}</div>
-        <div style="color:#aaa;font-size:11px">${dir.name} · Cấp ${state.level} · ${levelInfo.name}</div>
-      `;
-      info.appendChild(header);
-
-      // Bonus
-      if (Object.keys(bonus).length > 0) {
-        const bonusDiv = document.createElement('div');
-        bonusDiv.style.cssText = 'background:rgba(255,255,255,0.04);border-radius:8px;padding:8px;margin-bottom:10px;font-size:11px';
-        bonusDiv.innerHTML = '<div style="color:#f0c040;margin-bottom:6px">✦ Bonus Tông Môn:</div>';
-        const bonusMap = {
-          atk: ['ATK', '+{v}%'],
-          def: ['DEF', '+{v}%'],
-          maxHp: ['Max HP', '+{v}%'],
-          maxMp: ['Max MP', '+{v}%'],
-          critRate: ['Bạo Kích', '+{v}%'],
-          skillDmg: ['Skill DMG', '+{v}%'],
-          hpRegen: ['HP Regen', '+{v}/3s'],
-          mpRegen: ['MP Regen', '+{v}/3s']
-        };
-        for (const [k, v] of Object.entries(bonus)) {
-          if (!bonusMap[k]) continue;
-          const [label, fmt] = bonusMap[k];
-          const val = (k === 'hpRegen' || k === 'mpRegen') ? v : Math.round(v * 100);
-          bonusDiv.innerHTML += `<div style="color:#ccc;display:flex;justify-content:space-between">
-            <span>${label}</span><span style="color:#4caf50">${fmt.replace('{v}', val)}</span></div>`;
-        }
-        info.appendChild(bonusDiv);
-      }
-
-      // Disciples
-      if (state.disciples.length > 0) {
-        const discDiv = document.createElement('div');
-        discDiv.style.cssText = 'margin-bottom:10px';
-        discDiv.innerHTML = `<div style="color:#aaa;font-size:11px;margin-bottom:6px">👥 Đệ Tử (${state.disciples.length}):</div>`;
-        for (const d of state.disciples) {
-          discDiv.innerHTML += `
-            <div style="background:rgba(255,255,255,0.04);border-radius:6px;padding:6px 8px;
-                        display:flex;justify-content:space-between;align-items:center;margin-bottom:4px;font-size:11px">
-              <span style="color:${dir.color}">${dir.icon} ${d.name}</span>
-              <span style="color:#888">Lv.${d.level} · ATK ${d.atk}</span>
-            </div>`;
-        }
-        info.appendChild(discDiv);
-      }
-
-      // Upgrade
-      if (state.level < 5) {
-        const nextLevel = SECT_CONFIG.sectLevels[state.level];
-        const upgradeCheck = SectSystem.canUpgrade();
-        const upDiv = document.createElement('div');
-        upDiv.style.cssText = 'margin-bottom:8px';
-        let costHtml = '';
-        if (nextLevel.upgradeCost) {
-          for (const [k, v] of Object.entries(nextLevel.upgradeCost)) {
-            const iname = k === 'gold' ? `${v} 💰` : `${ITEMS[k] ? ITEMS[k].name : k} x${v}`;
-            const has = k === 'gold' ? Player.gold >= v : Inventory.has(k, v);
-            costHtml += `<span style="color:${has ? '#4caf50' : '#f44336'}">${iname}</span> `;
-          }
-        }
-        upDiv.innerHTML = `
-          <div style="color:#aaa;font-size:10px;margin-bottom:6px">Thăng cấp → ${nextLevel.name}: ${costHtml}</div>
-          <button id="upgradeSectBtn" ${upgradeCheck.can ? '' : 'disabled'}
-            style="width:100%;padding:8px;border:2px solid ${upgradeCheck.can ? '#f0c040' : '#444'};
-                   background:rgba(240,192,64,${upgradeCheck.can ? '0.15' : '0.05'});
-                   border-radius:8px;color:${upgradeCheck.can ? '#f0c040' : '#555'};
-                   font-family:inherit;font-size:12px;cursor:${upgradeCheck.can ? 'pointer' : 'default'}">
-            ⬆ Nâng Cấp Tông Môn
+    const changeCost = dir.changeCost;
+    const canChange  = Inventory.has('dragonScale', changeCost.dragonScale) && Player.gold >= changeCost.gold;
+    const changeDiv  = document.createElement('div');
+    changeDiv.innerHTML = `
+      <div style="color:#aaa;font-size:10px;margin-bottom:4px">
+        Đổi hướng: Vảy Rồng x${changeCost.dragonScale} + ${changeCost.gold} 💰
+      </div>
+      <div style="display:flex;gap:6px">
+        ${Object.keys(SECT_CONFIG.directions).filter(k => k !== state.direction).map(k => {
+          const d2 = SECT_CONFIG.directions[k];
+          return `<button class="changeDir" data-dir="${k}"
+            style="flex:1;padding:7px;border:2px solid ${canChange ? d2.color : '#333'};
+                   background:rgba(255,255,255,0.04);border-radius:8px;
+                   color:${canChange ? d2.color : '#555'};font-family:inherit;
+                   font-size:11px;cursor:${canChange ? 'pointer' : 'default'}">
+            ${d2.icon} ${d2.name.split('')[0]}...
           </button>`;
-        info.appendChild(upDiv);
-        const upgradeBtn = upDiv.querySelector('#upgradeSectBtn');
-        if (upgradeCheck.can) {
-          upgradeBtn.addEventListener('click', () => {
-            SectSystem.upgrade();
-            SectArtsPanel.renderCurrentTab();
-          });
-        }
-      } else {
-        info.innerHTML += `<div style="text-align:center;color:#f0c040;font-size:12px;padding:8px">🏆 Tông Môn đã đạt đỉnh cao!</div>`;
-      }
-
-      // Change direction
-      const changeCost = dir.changeCost;
-      const canChange = Inventory.has('dragonScale', changeCost.dragonScale) && Player.gold >= changeCost.gold;
-      const changeDiv = document.createElement('div');
-      changeDiv.innerHTML = `
-        <div style="color:#aaa;font-size:10px;margin-bottom:4px">
-          Đổi hướng: Vảy Rồng x${changeCost.dragonScale} + ${changeCost.gold} 💰
-        </div>
-        <div style="display:flex;gap:6px">
-          ${Object.keys(SECT_CONFIG.directions).filter(k => k !== state.direction).map(k => {
-            const d2 = SECT_CONFIG.directions[k];
-            return `<button class="changeDir" data-dir="${k}"
-              style="flex:1;padding:7px;border:2px solid ${canChange ? d2.color : '#333'};
-                     background:rgba(255,255,255,0.04);border-radius:8px;
-                     color:${canChange ? d2.color : '#555'};font-family:inherit;
-                     font-size:11px;cursor:${canChange ? 'pointer' : 'default'}">
-              ${d2.icon} ${d2.name.split('')[0]}...
-            </button>`;
-          }).join('')}
-        </div>`;
-      info.appendChild(changeDiv);
+        }).join('')}
+      </div>`;
+    info.appendChild(changeDiv);
+    if (canChange) {
       changeDiv.querySelectorAll('.changeDir').forEach(btn => {
-        if (!canChange) return;
         btn.addEventListener('click', () => {
           SectSystem.changeDirection(btn.dataset.dir);
           SectArtsPanel.renderCurrentTab();
         });
       });
-
-      container.appendChild(info);
     }
+    container.appendChild(info);
   },
 
   renderArtsTab(container) {
     container.innerHTML = '';
     const state = ArtsSystem.state;
-
-    const wrap = document.createElement('div');
+    const wrap  = document.createElement('div');
     wrap.style.cssText = 'padding:10px';
 
-    // Learned slots
     wrap.innerHTML += '<div style="color:#f0c040;font-size:12px;font-weight:bold;margin-bottom:8px">📖 Công Pháp đang dùng (tối đa 3):</div>';
     const slotsDiv = document.createElement('div');
     slotsDiv.style.cssText = 'display:flex;flex-direction:column;gap:6px;margin-bottom:14px';
+
     for (let i = 0; i < ARTS_CONFIG.maxArtsSlots; i++) {
       const artId = state.learnedArts[i];
-      const slot = document.createElement('div');
+      const slot  = document.createElement('div');
       slot.style.cssText = 'background:rgba(255,255,255,0.05);border-radius:8px;padding:8px;display:flex;align-items:center;gap:8px;min-height:40px';
       if (artId) {
-        const art = ARTS_CONFIG.secretArts.find(a => a.id === artId);
+        const art    = ARTS_CONFIG.secretArts.find(a => a.id === artId);
         const stacks = artId === 'bloodSlaughter' ? ` (${state.bloodStacks} stacks)` : '';
         slot.innerHTML = `
           <span style="font-size:18px">${art.icon}</span>
@@ -746,9 +682,7 @@ const SectUI = {
           </div>
           <button data-forget="${artId}"
             style="padding:4px 8px;border:1px solid #f44336;background:rgba(244,67,54,0.15);
-                   border-radius:6px;color:#f44336;font-family:inherit;font-size:10px;cursor:pointer">
-            🗑
-          </button>`;
+                   border-radius:6px;color:#f44336;font-family:inherit;font-size:10px;cursor:pointer">🗑</button>`;
       } else {
         slot.innerHTML = '<span style="color:#444;font-size:11px;width:100%;text-align:center">— Trống —</span>';
       }
@@ -756,7 +690,6 @@ const SectUI = {
     }
     wrap.appendChild(slotsDiv);
 
-    // Forget buttons
     wrap.querySelectorAll('[data-forget]').forEach(btn => {
       btn.addEventListener('click', () => {
         ArtsSystem.forgetArt(btn.dataset.forget);
@@ -764,34 +697,32 @@ const SectUI = {
       });
     });
 
-    // Separator
     wrap.innerHTML += '<div style="border-top:1px solid #333;margin:10px 0"></div>';
     wrap.innerHTML += '<div style="color:#aaa;font-size:11px;margin-bottom:8px">📜 Bí Kíp Quyển trong túi:</div>';
 
-    // Scrolls in inventory
     const scrollArts = ARTS_CONFIG.secretArts.filter(art => Inventory.has('scroll_' + art.id));
-    if (scrollArts.length === 0) {
+    if (!scrollArts.length) {
       wrap.innerHTML += '<div style="color:#555;font-size:11px;text-align:center;padding:12px">Chưa có Bí Kíp Quyển.<br><small>Thu thập từ boss và dungeon!</small></div>';
     } else {
       const scrollList = document.createElement('div');
       scrollList.style.cssText = 'display:flex;flex-direction:column;gap:6px';
-      for (const art of scrollArts) {
-        const check = ArtsSystem.canLearn(art.id);
-        const hasConflict = check.can && check.conflicts.length > 0;
-        const needsSlot = check.can && check.needsSlot;
-        const cantLearn = !check.can;
 
-        let btnStyle = '';
-        let btnText = '';
+      for (const art of scrollArts) {
+        const check        = ArtsSystem.canLearn(art.id);
+        const hasConflict  = check.can && check.conflicts.length > 0;
+        const needsSlot    = check.can && check.needsSlot;
+        const cantLearn    = !check.can;
+
+        let btnStyle, btnText;
         if (cantLearn) {
           btnStyle = 'border:1px solid #555;background:rgba(255,255,255,0.03);color:#555;cursor:default';
-          btnText = check.reason === 'Đã học rồi' ? '✓ Đã học' : '✕';
+          btnText  = check.reason === 'Đã học rồi' ? '✓ Đã học' : '✕';
         } else if (hasConflict) {
           btnStyle = 'border:1px solid #ff9800;background:rgba(255,152,0,0.15);color:#ff9800;cursor:pointer';
-          btnText = '⚠️ Học';
+          btnText  = '⚠️ Học';
         } else {
           btnStyle = 'border:1px solid #4caf50;background:rgba(76,175,80,0.15);color:#4caf50;cursor:pointer';
-          btnText = needsSlot ? '🔄 Học' : '📖 Học';
+          btnText  = needsSlot ? '🔄 Học' : '📖 Học';
         }
 
         const row = document.createElement('div');
@@ -810,13 +741,11 @@ const SectUI = {
       }
       wrap.appendChild(scrollList);
 
-      // Learn buttons
       wrap.querySelectorAll('[data-learn]').forEach(btn => {
         btn.addEventListener('click', () => {
-          const artId = btn.dataset.learn;
-          const check = ArtsSystem.canLearn(artId);
+          const check = ArtsSystem.canLearn(btn.dataset.learn);
           if (!check.can) return;
-          ArtsSystem.learnArt(artId);
+          ArtsSystem.learnArt(btn.dataset.learn);
           SectArtsPanel.renderCurrentTab();
         });
       });
@@ -827,15 +756,10 @@ const SectUI = {
 };
 
 const ArtsUI = {
-  _pendingArtId: null,
-  _pendingReplaceId: null,
-
   showConflictDialog(artId, conflictIds) {
-    const dialog = document.getElementById('artsConflictDialog');
+    const dialog       = document.getElementById('artsConflictDialog');
     const conflictText = document.getElementById('conflictText');
-    const conflictNames = conflictIds.map(id => _getArtName(id)).join(', ');
-    const newArtName = _getArtName(artId);
-    conflictText.innerHTML = `Học <b style="color:#f0c040">${newArtName}</b> sẽ quên <b style="color:#ff9800">${conflictNames}</b>.<br>Bạn có đồng ý không?`;
+    conflictText.innerHTML = `Học <b style="color:#f0c040">${_getArtName(artId)}</b> sẽ quên <b style="color:#ff9800">${conflictIds.map(_getArtName).join(', ')}</b>.<br>Bạn có đồng ý không?`;
 
     document.getElementById('conflictYes').onclick = () => {
       conflictIds.forEach(id => ArtsSystem.forgetArt(id));
@@ -843,23 +767,16 @@ const ArtsUI = {
       dialog.style.display = 'none';
       SectArtsPanel.renderCurrentTab();
     };
-    document.getElementById('conflictNo').onclick = () => {
-      dialog.style.display = 'none';
-    };
+    document.getElementById('conflictNo').onclick = () => { dialog.style.display = 'none'; };
     dialog.style.display = 'block';
   },
 
   showSlotDialog(artId) {
-    // Show which learned art to replace
     const learnedArts = ArtsSystem.state.learnedArts;
-    if (learnedArts.length === 0) {
-      ArtsSystem._doLearnArt(artId);
-      return;
-    }
+    if (!learnedArts.length) { ArtsSystem._doLearnArt(artId); return; }
 
-    const dialog = document.getElementById('artsConflictDialog');
+    const dialog       = document.getElementById('artsConflictDialog');
     const conflictText = document.getElementById('conflictText');
-    const newArtName = _getArtName(artId);
 
     const optHtml = learnedArts.map(id =>
       `<button class="slotReplaceBtn" data-replace="${id}"
@@ -870,23 +787,24 @@ const ArtsUI = {
       </button>`
     ).join('');
 
-    conflictText.innerHTML = `Slot Công Pháp đầy. Chọn Công Pháp muốn quên để học <b style="color:#f0c040">${newArtName}</b>:<br><br>${optHtml}`;
+    conflictText.innerHTML = `Slot Công Pháp đầy. Chọn Công Pháp muốn quên để học <b style="color:#f0c040">${_getArtName(artId)}</b>:<br><br>${optHtml}`;
 
-    document.getElementById('conflictYes').style.display = 'none';
-    document.getElementById('conflictNo').textContent = '✕ Hủy';
-    document.getElementById('conflictNo').onclick = () => {
+    const yesBtn = document.getElementById('conflictYes');
+    const noBtn  = document.getElementById('conflictNo');
+    yesBtn.style.display = 'none';
+    noBtn.textContent    = '✕ Hủy';
+    noBtn.onclick = () => {
       dialog.style.display = 'none';
-      document.getElementById('conflictYes').style.display = '';
-      document.getElementById('conflictNo').textContent = '✕ Hủy';
+      yesBtn.style.display = '';
+      noBtn.textContent    = '✕ Hủy';
     };
-
     dialog.style.display = 'block';
 
     dialog.querySelectorAll('.slotReplaceBtn').forEach(btn => {
       btn.addEventListener('click', () => {
         ArtsSystem._doLearnArt(artId, btn.dataset.replace);
         dialog.style.display = 'none';
-        document.getElementById('conflictYes').style.display = '';
+        yesBtn.style.display = '';
         SectArtsPanel.renderCurrentTab();
       });
     });
@@ -915,21 +833,11 @@ const SectArtsPanel = {
 
   renderCurrentTab() {
     const content = document.getElementById('sectArtsContent');
-    if (this._currentTab === 'sect') {
-      SectUI.renderSectTab(content);
-    } else {
-      SectUI.renderArtsTab(content);
-    }
+    if (this._currentTab === 'sect') SectUI.renderSectTab(content);
+    else                             SectUI.renderArtsTab(content);
   }
 };
 
-// Helper: hex to rgb for CSS
-function _hexToRgb(hex) {
-  const r = parseInt(hex.slice(1, 3), 16);
-  const g = parseInt(hex.slice(3, 5), 16);
-  const b = parseInt(hex.slice(5, 7), 16);
-  return `${r},${g},${b}`;
-}
 
 // ==================== SECTION 5: INIT & MONKEY-PATCHES ====================
 
@@ -955,38 +863,31 @@ const SectArtsFeature = {
     this._hookPlayerUseSkill();
     this._loadSavedData();
     Player.recalculateStats();
-    console.log('🏯 Sect & Arts System loaded');
   },
 
   _injectHTML() {
     const html = `
-    <!-- Sect & Arts Main Panel -->
     <div id="sectArtsOverlay" class="modal-overlay" style="display:none;z-index:110;
-      position:fixed;inset:0;background:rgba(0,0,0,0.7);
-      display:none;align-items:center;justify-content:center">
+      position:fixed;inset:0;background:rgba(0,0,0,0.7);align-items:center;justify-content:center">
       <div class="modal-panel" style="max-width:420px;width:92vw;
         background:linear-gradient(135deg,#1a1a2e,#16213e);
         border:2px solid #f0c040;border-radius:16px;overflow:hidden;
         max-height:85vh;display:flex;flex-direction:column">
-        <div class="modal-header" style="padding:14px 16px;
-          background:rgba(240,192,64,0.08);
+        <div class="modal-header" style="padding:14px 16px;background:rgba(240,192,64,0.08);
           border-bottom:1px solid #333;display:flex;align-items:center;justify-content:space-between">
           <div style="color:#f0c040;font-size:14px;font-weight:bold">🏯 Tông Môn & Công Pháp</div>
           <div id="sectArtsClose" style="color:#888;font-size:18px;cursor:pointer;padding:0 4px">✕</div>
         </div>
         <div id="sectArtsTabRow" style="display:flex;border-bottom:1px solid #333">
           <div class="tab-btn active" data-tab="sect"
-            style="flex:1;padding:10px;text-align:center;cursor:pointer;
-                   font-size:12px;color:#f0c040;border-bottom:2px solid #f0c040">🏯 Tông Môn</div>
+            style="flex:1;padding:10px;text-align:center;cursor:pointer;font-size:12px;color:#f0c040;border-bottom:2px solid #f0c040">🏯 Tông Môn</div>
           <div class="tab-btn" data-tab="arts"
-            style="flex:1;padding:10px;text-align:center;cursor:pointer;
-                   font-size:12px;color:#888">📖 Công Pháp</div>
+            style="flex:1;padding:10px;text-align:center;cursor:pointer;font-size:12px;color:#888">📖 Công Pháp</div>
         </div>
         <div id="sectArtsContent" style="min-height:300px;overflow-y:auto;flex:1"></div>
       </div>
     </div>
 
-    <!-- Conflict / Slot Dialog -->
     <div id="artsConflictDialog" style="display:none;position:fixed;
       top:50%;left:50%;transform:translate(-50%,-50%);
       background:linear-gradient(135deg,#1a1a2e,#16213e);
@@ -996,16 +897,11 @@ const SectArtsFeature = {
       <div id="conflictText" style="color:#ff9800;font-size:12px;margin-bottom:15px;line-height:1.5"></div>
       <div style="display:flex;gap:10px">
         <button id="conflictYes"
-          style="flex:1;padding:10px;border:2px solid #4caf50;
-                 background:rgba(76,175,80,0.2);border-radius:8px;color:#4caf50;
-                 font-size:11px;cursor:pointer;font-family:inherit">✓ Đồng ý quên</button>
+          style="flex:1;padding:10px;border:2px solid #4caf50;background:rgba(76,175,80,0.2);border-radius:8px;color:#4caf50;font-size:11px;cursor:pointer;font-family:inherit">✓ Đồng ý quên</button>
         <button id="conflictNo"
-          style="flex:1;padding:10px;border:2px solid #f44336;
-                 background:rgba(244,67,54,0.2);border-radius:8px;color:#f44336;
-                 font-size:11px;cursor:pointer;font-family:inherit">✕ Hủy</button>
+          style="flex:1;padding:10px;border:2px solid #f44336;background:rgba(244,67,54,0.2);border-radius:8px;color:#f44336;font-size:11px;cursor:pointer;font-family:inherit">✕ Hủy</button>
       </div>
     </div>`;
-
     document.body.insertAdjacentHTML('beforeend', html);
   },
 
@@ -1014,12 +910,11 @@ const SectArtsFeature = {
     const style = document.createElement('style');
     style.id = 'sect-arts-style';
     style.textContent = `
-      #sectArtsTabRow .tab-btn { transition: color .2s, border-color .2s; }
-      #sectArtsTabRow .tab-btn.active { color: #f0c040; border-bottom: 2px solid #f0c040; }
-      #sectArtsTabRow .tab-btn:not(.active) { color: #888; border-bottom: 2px solid transparent; }
-      #sectArtsContent::-webkit-scrollbar { width: 4px; }
-      #sectArtsContent::-webkit-scrollbar-thumb { background: #444; border-radius: 2px; }
-    `;
+      #sectArtsTabRow .tab-btn { transition:color .2s, border-color .2s; }
+      #sectArtsTabRow .tab-btn.active { color:#f0c040; border-bottom:2px solid #f0c040; }
+      #sectArtsTabRow .tab-btn:not(.active) { color:#888; border-bottom:2px solid transparent; }
+      #sectArtsContent::-webkit-scrollbar { width:4px; }
+      #sectArtsContent::-webkit-scrollbar-thumb { background:#444; border-radius:2px; }`;
     document.head.appendChild(style);
   },
 
@@ -1028,25 +923,22 @@ const SectArtsFeature = {
       const key = 'scroll_' + art.id;
       if (!ITEMS[key]) {
         ITEMS[key] = {
-          name: 'Bí Kíp: ' + art.name,
-          type: 'consumable',
-          rarity: art.rarity,
-          desc: art.desc + '\nDùng để học Công Pháp.',
-          effect: { learnArt: art.id },
+          name:      'Bí Kíp: ' + art.name,
+          type:      'consumable',
+          rarity:    art.rarity,
+          desc:      art.desc + '\nDùng để học Công Pháp.',
+          effect:    { learnArt: art.id },
           sellPrice: art.rarity === 'legendary' ? 1000 : art.rarity === 'epic' ? 400 : 150,
-          icon: 'scroll'
+          icon:      'scroll'
         };
       }
     }
   },
 
   _setupEventListeners() {
-    // Close button
     document.addEventListener('click', e => {
       if (e.target.id === 'sectArtsClose') SectArtsPanel.close();
     });
-
-    // Tab switching
     document.addEventListener('click', e => {
       const btn = e.target.closest('#sectArtsTabRow .tab-btn');
       if (!btn) return;
@@ -1054,8 +946,6 @@ const SectArtsFeature = {
       SectArtsPanel._updateTabs();
       SectArtsPanel.renderCurrentTab();
     });
-
-    // Close on overlay click
     document.addEventListener('click', e => {
       if (e.target.id === 'sectArtsOverlay') SectArtsPanel.close();
     });
@@ -1063,10 +953,10 @@ const SectArtsFeature = {
 
   _addNPCType() {
     NPC.types.sectElder = {
-      name: 'Tông Môn Trưởng Lão',
-      title: 'Người dẫn đường tu luyện',
-      sprite: 'npcTeleporter',
-      dialog: 'Đạo hữu muốn lập Tông Môn hay học Công Pháp?',
+      name:    'Tông Môn Trưởng Lão',
+      title:   'Người dẫn đường tu luyện',
+      sprite:  'npcTeleporter',
+      dialog:  'Đạo hữu muốn lập Tông Môn hay học Công Pháp?',
       service: 'sect'
     };
   },
@@ -1075,10 +965,7 @@ const SectArtsFeature = {
     const _origSpawnForMap = NPC.spawnForMap.bind(NPC);
     NPC.spawnForMap = function(mapIndex) {
       _origSpawnForMap(mapIndex);
-      const elderPositions = [
-        [600, 300], [350, 500], [500, 350],
-        [420, 400], [380, 320], [460, 350]
-      ];
+      const elderPositions = [[600,300],[350,500],[500,350],[420,400],[380,320],[460,350]];
       const pos = elderPositions[mapIndex] || [500, 400];
       NPC.spawn('sectElder', pos[0], pos[1]);
     };
@@ -1087,10 +974,7 @@ const SectArtsFeature = {
   _hookNPCInteract() {
     const _origInteract = NPC.interact.bind(NPC);
     NPC.interact = function(npc) {
-      if (npc && npc.service === 'sect') {
-        SectArtsPanel.open();
-        return;
-      }
+      if (npc?.service === 'sect') { SectArtsPanel.open(); return; }
       _origInteract(npc);
     };
   },
@@ -1099,7 +983,6 @@ const SectArtsFeature = {
     const _origRS = Player.recalculateStats.bind(Player);
     Player.recalculateStats = function() {
       _origRS();
-      // Sect bonus
       if (SectSystem.state.founded) {
         const bonus = SectSystem.getBonus();
         if (bonus.atk)      this.atk      = Math.floor(this.atk      * (1 + bonus.atk));
@@ -1113,8 +996,6 @@ const SectArtsFeature = {
       }
       this.hp = Math.min(this.hp, this.maxHp);
       this.mp = Math.min(this.mp, this.maxMp);
-
-      // Arts bonus (after sect)
       ArtsSystem.recalculateArtsBonus();
     };
   },
@@ -1129,29 +1010,14 @@ const SectArtsFeature = {
   },
 
   _hookGameRender() {
-    // Wrap renderObjects / render to draw disciples in world space
-    // Game.render draws in screen space after camera translate
-    // We patch after the render pipeline finishes world-space objects
-    const _origRender = Game.render ? Game.render.bind(Game) : null;
-    if (_origRender) {
-      Game.render = function() {
-        _origRender();
-        // Disciples are drawn inside SectSystem.render called from update hook below
-      };
-    }
-    // Better: hook into the render loop directly using renderObjects if available
-    // Otherwise wrap Game.render and insert disciple draw call
+    // Prefer Game.renderWorld (world-space context); fallback to wrapping Game.render
     const _origRenderWorld = Game.renderWorld ? Game.renderWorld.bind(Game) : null;
     if (_origRenderWorld) {
-      Game.renderWorld = function(ctx) {
-        _origRenderWorld(ctx);
-        SectSystem.render(ctx);
-      };
+      Game.renderWorld = function(ctx) { _origRenderWorld(ctx); SectSystem.render(ctx); };
     } else {
-      // Fallback: inject into render via overriding render and calling disciples render with camera translate
-      const _origRender2 = Game.render.bind(Game);
+      const _origRender = Game.render.bind(Game);
       Game.render = function() {
-        _origRender2();
+        _origRender();
         const ctx = this.ctx;
         ctx.save();
         ctx.translate(-GameState.camera.x, -GameState.camera.y);
@@ -1164,28 +1030,22 @@ const SectArtsFeature = {
   _hookSaveLoad() {
     const SAVE_KEY = 'tuxien_sect_arts';
 
-    const _origSave = Game.save ? Game.save.bind(Game) : null;
-    if (_origSave) {
+    if (Game.save) {
+      const _origSave = Game.save.bind(Game);
       Game.save = function() {
         _origSave();
         try {
           localStorage.setItem(SAVE_KEY, JSON.stringify({
             sect: SectSystem.state,
-            arts: {
-              learnedArts: ArtsSystem.state.learnedArts,
-              bloodStacks: ArtsSystem.state.bloodStacks
-            }
+            arts: { learnedArts: ArtsSystem.state.learnedArts, bloodStacks: ArtsSystem.state.bloodStacks }
           }));
         } catch (e) { console.warn('SectArts save error', e); }
       };
     }
 
-    const _origLoad = Game.load ? Game.load.bind(Game) : null;
-    if (_origLoad) {
-      Game.load = function() {
-        _origLoad();
-        SectArtsFeature._loadSavedData();
-      };
+    if (Game.load) {
+      const _origLoad = Game.load.bind(Game);
+      Game.load = function() { _origLoad(); SectArtsFeature._loadSavedData(); };
     }
   },
 
@@ -1209,57 +1069,37 @@ const SectArtsFeature = {
     const _origUseItem = Inventory.useItem.bind(Inventory);
     Inventory.useItem = function(itemId) {
       const itemData = ITEMS[itemId];
-      if (itemData && itemData.effect && itemData.effect.learnArt) {
+      if (itemData?.effect?.learnArt) {
         if (!Inventory.has(itemId)) return false;
-        const artId = itemData.effect.learnArt;
-        const learned = ArtsSystem.learnArt(artId);
-        // If learned or opened a dialog, consume the scroll
-        if (learned || ArtsSystem.canLearn(artId).can === false) {
-          // Only remove if actually learned (learnArt returns true only on direct learn)
-          if (learned) {
-            Inventory.remove(itemId, 1);
-            Inventory.render();
-          }
-        } else {
-          // Conflict/slot dialog shown, remove after confirm — handled inside _doLearnArt? 
-          // We'll remove on successful _doLearnArt by wrapping it
-        }
+        const learned = ArtsSystem.learnArt(itemData.effect.learnArt);
+        if (learned) { Inventory.remove(itemId, 1); Inventory.render(); }
         return true;
       }
       return _origUseItem(itemId);
     };
 
-    // Wrap _doLearnArt to remove scroll after learn
+    // Remove scroll after _doLearnArt (covers conflict/slot paths)
     const _origDoLearnArt = ArtsSystem._doLearnArt.bind(ArtsSystem);
     ArtsSystem._doLearnArt = function(artId, replaceId) {
       _origDoLearnArt(artId, replaceId);
-      // Remove scroll if present
       const scrollKey = 'scroll_' + artId;
-      if (Inventory.has(scrollKey)) {
-        Inventory.remove(scrollKey, 1);
-        Inventory.render();
-      }
+      if (Inventory.has(scrollKey)) { Inventory.remove(scrollKey, 1); Inventory.render(); }
     };
   },
 
   _hookEnemiesDamage() {
     const _origDamage = Enemies.damage.bind(Enemies);
     Enemies.damage = function(enemy, amount, isCrit, color) {
-      // deathCounter: amp outgoing damage from player attacks
-      let finalAmount = amount;
-      if (Player._artsDeathCounterActive) {
-        finalAmount = Math.floor(finalAmount * 1.40);
-      }
+      let finalAmount = Player._artsDeathCounterActive ? Math.floor(amount * 1.40) : amount;
 
       _origDamage(enemy, finalAmount, isCrit, color);
 
-      // swordRain: extra sword qi on basic attack hit
+      // swordRain: extra sword qi on basic attack
       if (ArtsSystem.hasArt('swordRain') && Player._isBasicAttack) {
         const extraDmg = Math.floor(Player.atk * 0.20);
         if (enemy.alive && enemy.hp > 0) {
           enemy.hp -= extraDmg;
           Game.spawnDamageNumber(enemy.x + 10, enemy.y - 15, extraDmg.toString(), '#ef5350');
-          // Sword qi particle
           for (let i = 0; i < 3; i++) {
             GameState.particles.push({
               x: Player.x, y: Player.y,
@@ -1268,9 +1108,7 @@ const SectArtsFeature = {
               life: 250, color: '#ef5350', size: 2
             });
           }
-          if (enemy.hp <= 0 && typeof Enemies.kill === 'function') {
-            Enemies.kill(enemy);
-          }
+          if (enemy.hp <= 0) Enemies.kill(enemy);
         }
       }
 
@@ -1284,9 +1122,7 @@ const SectArtsFeature = {
           vx: (Math.random() - 0.5) * 3, vy: -2 - Math.random() * 2,
           life: 400, color: '#ffff00', size: 4
         });
-        if (enemy.hp <= 0 && typeof Enemies.kill === 'function') {
-          Enemies.kill(enemy);
-        }
+        if (enemy.hp <= 0) Enemies.kill(enemy);
       }
     };
   },
@@ -1295,12 +1131,10 @@ const SectArtsFeature = {
     if (typeof Enemies.kill !== 'function') return;
     const _origKill = Enemies.kill.bind(Enemies);
     Enemies.kill = function(enemy) {
-      // bloodSlaughter stack
       if (ArtsSystem.hasArt('bloodSlaughter')) {
         ArtsSystem.state.bloodStacks = Math.min(20, ArtsSystem.state.bloodStacks + 1);
         Player.recalculateStats();
       }
-      // devourHeaven gold bonus (patch gold before kill clears it)
       if (ArtsSystem.hasArt('devourHeaven') && enemy.gold) {
         enemy.gold = Math.floor(enemy.gold * 1.30);
       }
@@ -1311,29 +1145,22 @@ const SectArtsFeature = {
   _hookPlayerGainExp() {
     const _origGainExp = Player.gainExp.bind(Player);
     Player.gainExp = function(amount) {
-      if (ArtsSystem.hasArt('devourHeaven')) {
-        amount = Math.floor(amount * 1.30);
-      }
-      _origGainExp(amount);
+      _origGainExp(ArtsSystem.hasArt('devourHeaven') ? Math.floor(amount * 1.30) : amount);
     };
   },
 
   _hookPlayerTakeDamage() {
     const _origTakeDamage = Player.takeDamage.bind(Player);
     Player.takeDamage = function(amount, source) {
-      let finalAmount = amount;
-      // diamondBody: reduce damage when HP > 80%
-      if (ArtsSystem.hasArt('diamondBody') && Player.maxHp > 0 && Player.hp / Player.maxHp > 0.80) {
-        finalAmount = Math.floor(finalAmount * 0.80);
-      }
-      _origTakeDamage(finalAmount, source);
+      const final = (ArtsSystem.hasArt('diamondBody') && Player.maxHp > 0 && Player.hp / Player.maxHp > 0.80)
+        ? Math.floor(amount * 0.80) : amount;
+      _origTakeDamage(final, source);
     };
   },
 
   _hookPlayerDie() {
     const _origDie = Player.die.bind(Player);
     Player.die = function() {
-      // Reset bloodSlaughter stacks on death
       if (ArtsSystem.hasArt('bloodSlaughter')) {
         ArtsSystem.state.bloodStacks = 0;
         Player.recalculateStats();
@@ -1348,25 +1175,18 @@ const SectArtsFeature = {
     Player.useSkill = function(idx) {
       Player._isBasicAttack = (idx === 0);
       const result = _origUseSkill(idx);
-
-      // splitMind: reduce CD after skill is used
-      if (result && ArtsSystem.hasArt('splitMind') && this.skills && this.skills[idx]) {
-        const skill = this.skills[idx];
-        if (skill.cd > 0) {
-          skill.cd = Math.floor(skill.cd * 0.80);
-        }
+      if (result && ArtsSystem.hasArt('splitMind') && this.skills?.[idx]?.cd > 0) {
+        this.skills[idx].cd = Math.floor(this.skills[idx].cd * 0.80);
       }
-
       Player._isBasicAttack = false;
       return result;
     };
   }
 };
 
-// Auto-init when DOM is ready
 if (document.readyState === 'loading') {
   document.addEventListener('DOMContentLoaded', () => SectArtsFeature.init());
 } else {
-  // Already loaded — defer slightly so all game systems are ready
   setTimeout(() => SectArtsFeature.init(), 100);
 }
+// ===== CHANGES: Xóa console.log; _hookGameRender xóa dead block (if(_origRender){...}) vì chỉ gọi lại chính nó; rút gọn recalculateArtsBonus thành assignment trực tiếp; rút gọn _hookPlayerGainExp/TakeDamage/Die dùng ternary; early-return guard canFound trong renderSectTab; xóa else-branch rỗng trong _hookInventoryUseItem; xóa comment thừa =====

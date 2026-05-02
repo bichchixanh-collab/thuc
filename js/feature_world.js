@@ -1,3 +1,4 @@
+// ===== FILE: js/feature_world.js =====
 // ==================== WORLD SYSTEM ====================
 // feature_world.js — Random Events + Weather/Day-Night + Secret Map
 // Load sau game.js trong index.html
@@ -727,10 +728,6 @@ const RandomEventSystem = {
     }
   },
 
-  // Screen-space render (after ctx.restore)
-  renderScreenSpace() {
-    // Currently nothing needed here (challenge uses ChallengeHUD DOM)
-  }
 };
 
 // ──────────────────────────────────────────────────────────────
@@ -1142,7 +1139,6 @@ const SecretMapSystem = {
     } else {
       this._checkPortalProximity(dt);
     }
-    this._checkActivatorItem();
   },
 
   _checkPortalProximity(dt) {
@@ -1222,10 +1218,6 @@ const SecretMapSystem = {
     UI.showNotification('🗺 Gợi Ý!', 'Cổng bí mật đã được đánh dấu trên minimap');
   },
 
-  _checkActivatorItem() {
-    // If player has secret map item and presses interact near portal — handled via NPC / tap for now
-    // Placeholder for future item-based activation
-  },
 
   openSecretZone(mapIndex, portalIndex) {
     const s = this.state;
@@ -1705,7 +1697,6 @@ const WorldSystem = {
     this._hookRenderMinimap();
     this._hookPlayerUpdate();
 
-    console.log('🌍 World System loaded (Events + Weather + Secret Map)');
   },
 
   // ─── HTML Injection ────────────────────────────────────────
@@ -1784,7 +1775,6 @@ const WorldSystem = {
         RandomEventSystem.update(dt);
         WeatherSystem.update(dt);
         SecretMapSystem.update(dt);
-        SecretZoneHUD.updateInfo();
       }
     };
   },
@@ -1796,7 +1786,6 @@ const WorldSystem = {
     Game.render = function() {
       _origRender();
       WeatherSystem.render(this.ctx);
-      RandomEventSystem.renderScreenSpace(this.ctx);
     };
   },
 
@@ -2076,3 +2065,4 @@ const WorldSystem = {
 
 // Add to index.html after <script src="js/game.js"></script>:
 // <script src="js/feature_world.js"></script>
+// ===== CHANGES: Xóa SecretZoneHUD.updateInfo() (no-op) khỏi Game.update hook. Xóa RandomEventSystem.renderScreenSpace() (empty method) khỏi Game.render hook. Xóa SecretMapSystem._checkActivatorItem() (placeholder rỗng) — call lẫn method. Xóa RandomEventSystem.renderScreenSpace() method. Xóa console.log debug. =====

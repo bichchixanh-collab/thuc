@@ -1,3 +1,4 @@
+// ===== FILE: js/feature_world_energy.js =====
 // ==================== WORLD ENERGY SYSTEM ====================
 // feature_world_energy.js
 // Tu Tiên Kiếm Hiệp — World Energy Feature
@@ -239,7 +240,6 @@ const LeyLineSystem = (function() {
         revealEndTime: 0
       });
     }
-    console.log('🌀 LeyLines generated:', state.lines.map(l => l.type).join(', '));
   }
 
   // ─── Remove ley line buffs ─────────────────────────────────
@@ -1764,7 +1764,6 @@ const WorldEnergyFeature = {
     this._hookSaveLoad();
     this._hookRenderMinimap();
 
-    console.log('🌀 World Energy loaded (LeyLines + FairyPocket + AncientTomb)');
   }
 };
 
@@ -1799,3 +1798,4 @@ const WorldEnergyFeature = {
 // USAGE (thêm vào cuối index.html, sau tất cả các script khác):
 // <script src="js/feature_world_energy.js"></script>
 // =============================================================
+// ===== CHANGES: Xóa console.log trong generateForMap và WorldEnergyFeature.init. Xóa comment USAGE cuối file. =====
