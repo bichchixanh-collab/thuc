@@ -272,15 +272,9 @@ const AppearanceSystem = {
   checkSeasonalUnlocks() {
     const now = new Date();
     const month = now.getMonth() + 1; // 1-12
-    if (month === 1 || month === 2) {
-      this.unlockSkin('tet2024');
-    }
-    if (month === 10) {
-      this.unlockSkin('halloween');
-    }
-    if (month === 12) {
-      this.unlockSkin('winterFrost');
-    }
+    if (month === 1 || month === 2) this.unlockSkin('tet2024');
+    if (month === 10)               this.unlockSkin('halloween');
+    if (month === 12)               this.unlockSkin('winterFrost');
   },
 
   // ---- Save / Load ----
@@ -483,8 +477,7 @@ const AppearancePanel = {
     overlay.id = 'appearanceOverlay';
     overlay.className = 'modal-overlay';
     overlay.style.cssText = 'display:none;z-index:110;position:fixed;top:0;left:0;width:100%;height:100%;'
-      + 'background:rgba(0,0,0,0.7);display:flex;align-items:center;justify-content:center;';
-    overlay.style.display = 'none';
+      + 'background:rgba(0,0,0,0.7);align-items:center;justify-content:center;';
 
     overlay.innerHTML = `
       <div class="modal-panel" style="max-width:420px;width:95%;background:linear-gradient(135deg,#1a1a2e,#16213e);
@@ -512,8 +505,9 @@ const AppearancePanel = {
 
     document.body.appendChild(overlay);
 
-    // Inject style
+    // Inject styles: panel + tab bar responsive fix
     const style = document.createElement('style');
+    style.id = 'appearance-system-style';
     style.textContent = `
       #appearanceOverlay .app-tab-btn.active {
         background: #f0c04033 !important;
@@ -543,6 +537,45 @@ const AppearancePanel = {
       }
       .app-color-circle:hover { transform: scale(1.15); }
       .app-color-circle.selected { border-color: #fff !important; transform: scale(1.15); }
+
+      /* ── FIX: Tab bar trong character panel — responsive, horizontal scroll ── */
+      #characterPanel .tab-row,
+      #charPanel .tab-row,
+      .char-panel .tab-row,
+      [id*="character"][id*="panel"] .tab-row,
+      [id*="char"][id*="panel"] .tab-row {
+        display: flex !important;
+        flex-wrap: nowrap !important;
+        overflow-x: auto !important;
+        overflow-y: hidden !important;
+        -webkit-overflow-scrolling: touch;
+        scrollbar-width: none;
+        -ms-overflow-style: none;
+        gap: 4px !important;
+        padding-bottom: 2px;
+      }
+      #characterPanel .tab-row::-webkit-scrollbar,
+      #charPanel .tab-row::-webkit-scrollbar,
+      [id*="character"][id*="panel"] .tab-row::-webkit-scrollbar,
+      [id*="char"][id*="panel"] .tab-row::-webkit-scrollbar {
+        display: none;
+      }
+      /* Tab buttons không bị co lại */
+      #characterPanel .tab-row .tab-btn,
+      #charPanel .tab-row .tab-btn,
+      [id*="character"][id*="panel"] .tab-row .tab-btn,
+      [id*="char"][id*="panel"] .tab-row .tab-btn {
+        flex: 0 0 auto !important;
+        flex-shrink: 0 !important;
+        white-space: nowrap !important;
+        min-width: unset !important;
+      }
+      /* Panel không tràn màn hình */
+      #characterPanel,
+      #charPanel {
+        max-width: min(420px, 96vw) !important;
+        box-sizing: border-box !important;
+      }
     `;
     document.head.appendChild(style);
   },
@@ -688,7 +721,6 @@ const AppearancePanel = {
       if (!circle) return;
       const { part, color } = circle.dataset;
       AppearanceSystem.setPartColor(part, color);
-      // Update selected state
       el.querySelectorAll(`.app-color-circle[data-part="${part}"]`).forEach(c => {
         c.classList.toggle('selected', c.dataset.color === color);
       });
@@ -719,7 +751,9 @@ const AppearancePanel = {
     for (const [skinId, skin] of Object.entries(skins)) {
       const isUnlocked = unlocked.includes(skinId);
       const isActive = current === skinId;
-      const badge = skin.seasonal ? (skinId === 'tet2024' ? '🧧' : skinId === 'halloween' ? '🎃' : '❄️') : '';
+      const badge = skin.seasonal
+        ? (skinId === 'tet2024' ? '🧧' : skinId === 'halloween' ? '🎃' : '❄️')
+        : '';
 
       html += `
         <div class="app-skin-card ${isActive ? 'active' : ''} ${!isUnlocked ? 'locked' : ''}"
@@ -861,7 +895,7 @@ const AppearanceFeature = {
     // 4. Restore saved data (nếu có)
     this._loadSaved();
 
-    // 5. Thêm nút vào character panel (nếu tồn tại)
+    // 5. Thêm nút vào character panel
     this._injectCharPanelBtn();
 
     console.log('👘 Appearance System loaded');
@@ -871,10 +905,8 @@ const AppearanceFeature = {
     try {
       const raw = localStorage.getItem('appearance_data');
       if (raw) {
-        const data = JSON.parse(raw);
-        AppearanceSystem.loadSaveData(data);
+        AppearanceSystem.loadSaveData(JSON.parse(raw));
       } else {
-        // Apply default
         AppearanceSystem.applyColors(AppearanceSystem.state.currentColors);
       }
     } catch (e) {
@@ -888,40 +920,80 @@ const AppearanceFeature = {
     } catch (e) {}
   },
 
+  // ── FIX: Thêm "Ngoại Hình" như 1 tab trong tab-row, không phải button nổi ──
   _injectCharPanelBtn() {
-    // Hook UI.renderCharacter để nút luôn xuất hiện sau mỗi lần render character panel
-    if (typeof UI !== 'undefined' && typeof UI.renderCharacter === 'function') {
-      const _origRenderChar = UI.renderCharacter.bind(UI);
-      UI.renderCharacter = function () {
-        _origRenderChar();
-        // Xóa nút cũ (nếu có) rồi thêm lại để tránh duplicate
-        const old = document.getElementById('appOpenBtn');
-        if (old) old.remove();
-        // Tìm đúng panel theo id thực tế trong HTML
-        const panel = document.getElementById('characterPanel')
-                   || document.getElementById('charPanel')
-                   || document.querySelector('.char-panel');
-        if (!panel) return;
-        const btn = document.createElement('button');
-        btn.id = 'appOpenBtn';
-        btn.textContent = '👘 Ngoại Hình';
-        btn.style.cssText = 'margin-top:10px;width:100%;padding:10px;border-radius:8px;'
-          + 'border:2px solid #e040fb;background:#e040fb22;color:#e040fb;cursor:pointer;'
-          + 'font-family:\'Courier New\',monospace;font-size:13px;font-weight:bold;'
-          + 'letter-spacing:1px;';
-        btn.addEventListener('click', () => AppearancePanel.open());
-        panel.appendChild(btn);
-      };
-    } else {
-      // Fallback: thử inject sau 1 giây nếu UI chưa sẵn
+    if (typeof UI === 'undefined' || typeof UI.renderCharacter !== 'function') {
       setTimeout(() => this._injectCharPanelBtn(), 1000);
+      return;
     }
+
+    const _origRenderChar = UI.renderCharacter.bind(UI);
+    UI.renderCharacter = function () {
+      _origRenderChar();
+
+      // Xóa button/tab cũ để tránh duplicate
+      const oldBtn = document.getElementById('appOpenBtn');
+      if (oldBtn) oldBtn.remove();
+      const oldTab = document.getElementById('appTabBtn');
+      if (oldTab) oldTab.remove();
+
+      // Tìm tab-row bên trong character panel
+      // (được inject bởi feature_character_build.js hoặc patch_ui.js)
+      const tabRow =
+        document.querySelector('#characterPanel .tab-row') ||
+        document.querySelector('#charPanel .tab-row') ||
+        document.querySelector('[id*="character"][id*="panel"] .tab-row') ||
+        document.querySelector('[id*="char"][id*="panel"] .tab-row');
+
+      if (tabRow) {
+        // ── Thêm như tab button trong tab-row ──
+        const tab = document.createElement('button');
+        tab.id        = 'appTabBtn';
+        tab.className = 'tab-btn';
+        tab.textContent = '✨ Ngoại Hình';
+        // Giữ nguyên style chung với các tab khác, chỉ đảm bảo không bị co
+        tab.style.cssText = 'flex-shrink:0;white-space:nowrap;cursor:pointer;font-family:inherit;';
+        tab.addEventListener('click', () => {
+          // Deactivate other tabs trong cùng tab-row
+          tabRow.querySelectorAll('.tab-btn').forEach(b => b.classList.remove('active'));
+          tab.classList.add('active');
+          AppearancePanel.open();
+        });
+        tabRow.appendChild(tab);
+        return; // Không thêm button dưới nữa
+      }
+
+      // Fallback: không tìm thấy tab-row → tìm inner content area
+      // Tránh append thẳng vào panel root (gây floating)
+      const panel =
+        document.getElementById('characterPanel') ||
+        document.getElementById('charPanel');
+      if (!panel) return;
+
+      // Tìm scrollable content wrapper bên trong panel
+      const contentWrapper =
+        panel.querySelector('.panel-body') ||
+        panel.querySelector('.panel-content') ||
+        panel.querySelector('.char-content') ||
+        panel.querySelector('[id*="charStats"]')?.parentElement ||
+        panel.querySelector('div[style*="overflow"]') ||
+        panel; // cuối cùng mới dùng panel gốc
+
+      const btn = document.createElement('button');
+      btn.id = 'appOpenBtn';
+      btn.textContent = '👘 Ngoại Hình';
+      btn.style.cssText =
+        'display:block;margin-top:10px;width:100%;padding:10px;border-radius:8px;' +
+        'border:2px solid #e040fb;background:#e040fb22;color:#e040fb;cursor:pointer;' +
+        'font-family:\'Courier New\',monospace;font-size:13px;font-weight:bold;letter-spacing:1px;';
+      btn.addEventListener('click', () => AppearancePanel.open());
+      contentWrapper.appendChild(btn);
+    };
   },
 
   // Gọi mỗi frame update
   update(dt) {
     ParticleThemeSystem.update(dt);
-    // HUD border update (không cần mỗi frame, dùng modulo)
     if (typeof GameState !== 'undefined' && Math.floor(GameState.time / 200) % 2 === 0) {
       AvatarFrameSystem.updateHUDBorder();
     }
@@ -957,7 +1029,6 @@ const AppearanceFeature = {
         if (Game.ctx) AvatarFrameSystem.renderAura(Game.ctx);
       };
     } else {
-      // Nếu renderPlayer nằm trong render loop, patch render thay thế
       const _origRender = Game.render ? Game.render.bind(Game) : null;
       if (_origRender) {
         Game.render = function () {
